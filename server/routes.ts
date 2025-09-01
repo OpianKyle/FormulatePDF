@@ -83,6 +83,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('Could not load logo image');
       }
 
+      // Load and embed the signature image
+      let signatureImage;
+      try {
+        const signaturePath = path.join(__dirname, '../attached_assets/image_1756732618787.png');
+        const signatureBytes = await fs.readFile(signaturePath);
+        signatureImage = await pdfDoc.embedPng(signatureBytes);
+      } catch (error) {
+        console.warn('Could not load signature image');
+      }
+
       // Create cover page
       const coverPage = pdfDoc.addPage([595.28, 841.89]); // A4 size
       
@@ -848,7 +858,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 60; // Space for signature
+      yPos -= 20;
+
+      // Add signature image
+      if (signatureImage) {
+        const signatureWidth = 120;
+        const signatureHeight = 60;
+        
+        page3.drawImage(signatureImage, {
+          x: 56,
+          y: yPos - signatureHeight,
+          width: signatureWidth,
+          height: signatureHeight,
+        });
+        
+        yPos -= signatureHeight + 10;
+      } else {
+        yPos -= 40; // Space for signature if image fails to load
+      }
 
       // CEO signature
       page3.drawText("Lance E Heynes", {
