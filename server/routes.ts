@@ -310,9 +310,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return lines;
       };
 
+      // Function to sanitize text and remove Unicode characters that can't be encoded
+      const sanitizeText = (text: string) => {
+        return text
+          .replace(/➤/g, '•')
+          .replace(/🔘/g, '•')
+          .replace(/☑/g, '•')
+          .replace(/✓/g, '•')
+          .replace(/📞/g, 'Tel:')
+          .replace(/✉/g, 'Email:')
+          .replace(/🌐/g, 'Website:')
+          .replace(/[^\x00-\x7F]/g, ''); // Remove any remaining non-ASCII characters
+      };
+
       const summaryLines = wrapText(executiveSummary, 480);
       summaryLines.forEach((line) => {
-        page1.drawText(line, {
+        page1.drawText(sanitizeText(line), {
           x: 56,
           y: yPos,
           size: 9,
@@ -342,7 +355,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       highlights.forEach((highlight) => {
         const highlightLines = wrapText(highlight, 480);
         highlightLines.forEach((line) => {
-          page1.drawText(line, {
+          page1.drawText(sanitizeText(line), {
             x: 76,
             y: yPos,
             size: 9,
