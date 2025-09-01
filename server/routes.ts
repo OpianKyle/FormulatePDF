@@ -174,6 +174,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const rightMargin = 20; // Equal margins
       const contentWidth = 595.28 - leftMargin - rightMargin; // 555.28
 
+      // Word wrap function
+      const wrapText = (text: string, maxWidth: number) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              lines.push(word);
+            }
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        return lines;
+      };
+
       // Dynamic title with investment details
       const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
       page1.drawText(titleText, {
@@ -253,28 +276,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Executive summary with dynamic values
       const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
       
-      // Word wrap for executive summary
-      const wrapText = (text: string, maxWidth: number) => {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
-            if (currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              lines.push(word);
-            }
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (currentLine) lines.push(currentLine);
-        return lines;
-      };
 
       // Function to sanitize text and remove Unicode characters that can't be encoded
       const sanitizeText = (text: string) => {
