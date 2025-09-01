@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const annualizedReturn = Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
 
       // Load and embed the cover page image
-      let coverImage;
+      let coverImage: any = null;
       try {
         const imagePath = path.join(__dirname, '../attached_assets/image_1756730534595.png');
         const imageBytes = await fs.readFile(imagePath);
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Load and embed the logo for content pages
-      let logoImage;
+      let logoImage: any = null;
       try {
         const logoPath = path.join(__dirname, '../attached_assets/image_1756732571502.png');
         const logoBytes = await fs.readFile(logoPath);
@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Load and embed the signature image
-      let signatureImage;
+      let signatureImage: any = null;
       try {
         const signaturePath = path.join(__dirname, '../attached_assets/image_1756732618787.png');
         const signatureBytes = await fs.readFile(signaturePath);
