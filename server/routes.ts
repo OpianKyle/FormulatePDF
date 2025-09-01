@@ -73,6 +73,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('Could not load cover image, using text-only cover page');
       }
 
+      // Load and embed the logo for content pages
+      let logoImage;
+      try {
+        const logoPath = path.join(__dirname, '../attached_assets/image_1756732571502.png');
+        const logoBytes = await fs.readFile(logoPath);
+        logoImage = await pdfDoc.embedPng(logoBytes);
+      } catch (error) {
+        console.warn('Could not load logo image');
+      }
+
       // Create cover page
       const coverPage = pdfDoc.addPage([595.28, 841.89]); // A4 size
       
@@ -126,13 +136,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+      // Function to add logo to page
+      const addLogoToPage = (page: any) => {
+        if (logoImage) {
+          const logoWidth = 120;
+          const logoHeight = 40;
+          const pageWidth = 595.28;
+          const x = pageWidth - logoWidth - 30; // 30px margin from right edge
+          const y = 800; // Top of the page with some margin
+          
+          page.drawImage(logoImage, {
+            x: x,
+            y: y,
+            width: logoWidth,
+            height: logoHeight,
+          });
+        }
+      };
+
       // PAGE 1 - First content page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
-      let yPos = 800;
+      addLogoToPage(page1);
+      let yPos = 750; // Lower starting position to accommodate logo
 
-      // Header with logo space (assuming logo will be in same position as template)
+      // Header
       page1.drawText("Private Equity Proposal", {
-        x: 250,
+        x: 56,
         y: yPos,
         size: 14,
         font: boldFont,
@@ -435,11 +464,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // PAGE 2 - Second content page
       const page2 = pdfDoc.addPage([595.28, 841.89]);
-      yPos = 800;
+      addLogoToPage(page2);
+      yPos = 750; // Lower starting position to accommodate logo
 
-      // Header with logo space
+      // Header
       page2.drawText("Private Equity Proposal", {
-        x: 250,
+        x: 56,
         y: yPos,
         size: 14,
         font: boldFont,
@@ -657,11 +687,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // PAGE 3 - Third content page
       const page3 = pdfDoc.addPage([595.28, 841.89]);
-      yPos = 800;
+      addLogoToPage(page3);
+      yPos = 750; // Lower starting position to accommodate logo
 
-      // Header with logo space
+      // Header
       page3.drawText("Private Equity Proposal", {
-        x: 250,
+        x: 56,
         y: yPos,
         size: 14,
         font: boldFont,
