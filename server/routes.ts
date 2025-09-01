@@ -167,146 +167,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 1 - First content page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
       addLogoToPage(page1);
-      let yPos = 750; // Lower starting position to accommodate logo
+      let yPos = 720; // Lower starting position to accommodate logo
+      
+      // Improved margins - equal left and right spacing
+      const leftMargin = 40;
+      const rightMargin = 40;
+      const contentWidth = 595.28 - leftMargin - rightMargin; // 515.28
 
-      // Header
-      page1.drawText("Private Equity Proposal", {
-        x: 56,
+      // Dynamic title with investment details
+      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
+      page1.drawText(titleText, {
+        x: leftMargin,
+        y: yPos,
+        size: 12,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 40;
+
+      // Client information without borders
+      page1.drawText(`Prepared for: ${proposal.clientName}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 10,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 20;
+      page1.drawText(`Address: ${proposal.clientAddress}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 10,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 20;
+      page1.drawText(`Date: ${proposal.proposalDate}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 10,
+        font,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 40;
+      
+      // Dear section as heading
+      page1.drawText(`Dear ${proposal.clientName}`, {
+        x: leftMargin,
         y: yPos,
         size: 14,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 50;
-
-      // Private Equity Proposal title
-      page1.drawText("Private Equity Proposal", {
-        x: 56,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 25;
-      
-      // Dynamic title with investment details
-      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
-      page1.drawText(titleText, {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 30;
-
-      // Client information section
-      page1.drawText("Prepared for:", {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      // Draw rectangle for client info
-      page1.drawRectangle({
-        x: 162,
-        y: yPos - 5,
-        width: 200,
-        height: 20,
-        borderColor: rgb(0, 0, 0),
-        borderWidth: 1,
-      });
-      
-      page1.drawText(proposal.clientName, {
-        x: 167,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 25;
-      page1.drawText("Address:", {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      // Address rectangle
-      page1.drawRectangle({
-        x: 162,
-        y: yPos - 60,
-        width: 200,
-        height: 80,
-        borderColor: rgb(0, 0, 0),
-        borderWidth: 1,
-      });
-      
-      page1.drawText(proposal.clientAddress, {
-        x: 167,
-        y: yPos - 10,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 110;
-      page1.drawText("Date:", {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      // Date rectangle
-      page1.drawRectangle({
-        x: 162,
-        y: yPos - 5,
-        width: 200,
-        height: 20,
-        borderColor: rgb(0, 0, 0),
-        borderWidth: 1,
-      });
-      
-      page1.drawText(proposal.proposalDate, {
-        x: 167,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
 
       yPos -= 40;
-
-      // Dear section rectangle
-      page1.drawRectangle({
-        x: 162,
-        y: yPos - 5,
-        width: 200,
-        height: 20,
-        borderColor: rgb(0, 0, 0),
-        borderWidth: 1,
-      });
-      
-      page1.drawText(`Dear ${proposal.clientName}`, {
-        x: 167,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 40;
+      yPos -= 25;
       page1.drawText("We thank you for your interest in our Private Equity Proposal", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 10,
         font,
@@ -315,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 30;
       page1.drawText("1. Executive Summary", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -362,10 +284,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .replace(/[^\x00-\x7F]/g, ''); // Remove any remaining non-ASCII characters
       };
 
-      const summaryLines = wrapText(executiveSummary, 480);
+      const summaryLines = wrapText(executiveSummary, contentWidth - 20); // Wider content
       summaryLines.forEach((line) => {
         page1.drawText(sanitizeText(line), {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -376,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 10;
       page1.drawText("Key Highlights:", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 10,
         font: boldFont,
@@ -392,10 +314,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       highlights.forEach((highlight) => {
-        const highlightLines = wrapText(highlight, 480);
+        const highlightLines = wrapText(highlight, contentWidth - 40);
         highlightLines.forEach((line) => {
           page1.drawText(sanitizeText(line), {
-            x: 76,
+            x: leftMargin + 20, // Indent for bullet points
             y: yPos,
             size: 9,
             font,
@@ -409,7 +331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Continue on page 1 with Investment Opportunity section
       yPos -= 20;
       page1.drawText("2. Investment Opportunity & Market Outlook", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -418,10 +340,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       const marketText = "Private equity has historically outperformed public markets, delivering 12-25%+ annual returns in emerging markets like South Africa and BRICS. Key sectors with strong growth potential include:";
-      const marketLines = wrapText(marketText, 480);
+      const marketLines = wrapText(marketText, contentWidth - 20);
       marketLines.forEach((line) => {
         page1.drawText(line, {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -439,7 +361,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       sectors.forEach((sector) => {
         page1.drawText(sector, {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -451,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 10;
       const renewableText = "Renewable Energy (Solar, battery storage)";
       page1.drawText(renewableText, {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 9,
         font,
@@ -460,10 +382,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       const investText = "By investing in early stage but undervalued businesses with strong cash flow, IP and scalability, we position the portfolio for accelerated growth.";
-      const investLines = wrapText(investText, 480);
+      const investLines = wrapText(investText, contentWidth - 20);
       investLines.forEach((line) => {
         page1.drawText(line, {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -475,22 +397,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 2 - Second content page
       const page2 = pdfDoc.addPage([595.28, 841.89]);
       addLogoToPage(page2);
-      yPos = 750; // Lower starting position to accommodate logo
-
-      // Header
-      page2.drawText("Private Equity Proposal", {
-        x: 56,
-        y: yPos,
-        size: 14,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      yPos = 720; // Lower starting position to accommodate logo
 
       yPos -= 60;
 
       // Investment Structure section
       page2.drawText("3. Proposed Investment Structure", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -698,16 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 3 - Third content page
       const page3 = pdfDoc.addPage([595.28, 841.89]);
       addLogoToPage(page3);
-      yPos = 750; // Lower starting position to accommodate logo
-
-      // Header
-      page3.drawText("Private Equity Proposal", {
-        x: 56,
-        y: yPos,
-        size: 14,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      yPos = 720; // Lower starting position to accommodate logo
 
       yPos -= 60;
 
