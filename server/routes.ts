@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const annualizedReturn = Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
 
       // Load and embed the cover page image
-      let coverImage: any = null;
+      let coverImage;
       try {
         const imagePath = path.join(__dirname, '../attached_assets/image_1756730534595.png');
         const imageBytes = await fs.readFile(imagePath);
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Load and embed the logo for content pages
-      let logoImage: any = null;
+      let logoImage;
       try {
         const logoPath = path.join(__dirname, '../attached_assets/image_1756732571502.png');
         const logoBytes = await fs.readFile(logoPath);
@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Load and embed the signature image
-      let signatureImage: any = null;
+      let signatureImage;
       try {
         const signaturePath = path.join(__dirname, '../attached_assets/image_1756732618787.png');
         const signatureBytes = await fs.readFile(signaturePath);
@@ -149,11 +149,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Function to add logo to page
       const addLogoToPage = (page: any) => {
         if (logoImage) {
-          const logoWidth = 180; // Bigger logo
-          const logoHeight = 60; // Bigger logo
+          const logoWidth = 120;
+          const logoHeight = 40;
           const pageWidth = 595.28;
-          const x = pageWidth - logoWidth - 20; // Smaller margin to account for bigger logo
-          const y = 780; // Adjusted position for bigger logo
+          const x = pageWidth - logoWidth - 30; // 30px margin from right edge
+          const y = 800; // Top of the page with some margin
           
           page.drawImage(logoImage, {
             x: x,
@@ -170,32 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let yPos = 720; // Lower starting position to accommodate logo
       
       // Improved margins - equal left and right spacing
-      const leftMargin = 20;
-      const rightMargin = 20; // Equal margins
-      const contentWidth = 595.28 - leftMargin - rightMargin; // 555.28
-
-      // Word wrap function
-      const wrapText = (text: string, maxWidth: number) => {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
-            if (currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              lines.push(word);
-            }
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (currentLine) lines.push(currentLine);
-        return lines;
-      };
+      const leftMargin = 40;
+      const rightMargin = 40;
+      const contentWidth = 595.28 - leftMargin - rightMargin; // 515.28
 
       // Dynamic title with investment details
       const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
@@ -219,22 +196,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 20;
-      
-      // Handle multi-line addresses
-      const addressText = `Address: ${proposal.clientAddress}`;
-      const addressLines = wrapText(addressText, contentWidth - 20);
-      addressLines.forEach((line) => {
-        page1.drawText(line, {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+      page1.drawText(`Address: ${proposal.clientAddress}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 10,
+        font,
+        color: rgb(0, 0, 0),
       });
 
-      yPos -= 5; // Small additional space after address
+      yPos -= 20;
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
         y: yPos,
@@ -243,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 30;
+      yPos -= 40;
       
       // Dear section as heading
       page1.drawText(`Dear ${proposal.clientName}`, {
@@ -254,7 +224,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 15; // Smaller gap after Dear
+
+      yPos -= 40;
+      yPos -= 25;
       page1.drawText("We thank you for your interest in our Private Equity Proposal", {
         x: leftMargin,
         y: yPos,
@@ -276,6 +248,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Executive summary with dynamic values
       const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
       
+      // Word wrap for executive summary
+      const wrapText = (text: string, maxWidth: number) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              lines.push(word);
+            }
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        return lines;
+      };
 
       // Function to sanitize text and remove Unicode characters that can't be encoded
       const sanitizeText = (text: string) => {
