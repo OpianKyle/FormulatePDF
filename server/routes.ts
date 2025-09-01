@@ -149,11 +149,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Function to add logo to page
       const addLogoToPage = (page: any) => {
         if (logoImage) {
-          const logoWidth = 120;
-          const logoHeight = 40;
+          const logoWidth = 180; // Bigger logo
+          const logoHeight = 60; // Bigger logo
           const pageWidth = 595.28;
-          const x = pageWidth - logoWidth - 30; // 30px margin from right edge
-          const y = 800; // Top of the page with some margin
+          const x = pageWidth - logoWidth - 20; // Smaller margin to account for bigger logo
+          const y = 780; // Adjusted position for bigger logo
           
           page.drawImage(logoImage, {
             x: x,
@@ -171,8 +171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Improved margins - equal left and right spacing
       const leftMargin = 40;
-      const rightMargin = 40;
-      const contentWidth = 595.28 - leftMargin - rightMargin; // 515.28
+      const rightMargin = 20; // Smaller right margin
+      const contentWidth = 595.28 - leftMargin - rightMargin; // 535.28
 
       // Dynamic title with investment details
       const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
@@ -213,7 +213,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 40;
+      yPos -= 30;
       
       // Dear section as heading
       page1.drawText(`Dear ${proposal.clientName}`, {
@@ -224,9 +224,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-
-      yPos -= 40;
-      yPos -= 25;
+      yPos -= 15; // Smaller gap after Dear
       page1.drawText("We thank you for your interest in our Private Equity Proposal", {
         x: leftMargin,
         y: yPos,
