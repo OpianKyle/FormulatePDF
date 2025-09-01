@@ -196,15 +196,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 20;
-      page1.drawText(`Address: ${proposal.clientAddress}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
+      
+      // Handle multi-line addresses
+      const addressText = `Address: ${proposal.clientAddress}`;
+      const addressLines = wrapText(addressText, contentWidth - 20);
+      addressLines.forEach((line) => {
+        page1.drawText(line, {
+          x: leftMargin,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        yPos -= 15;
       });
 
-      yPos -= 20;
+      yPos -= 5; // Small additional space after address
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
         y: yPos,
