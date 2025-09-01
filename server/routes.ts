@@ -153,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const logoHeight = 60;
           const pageWidth = 595.28;
           const x = pageWidth - logoWidth - 20; // 20px margin from right edge
-          const y = 800; // Top of the page with some margin
+          const y = 780; // More reasonable top margin (was 800, too close to edge)
           
           page.drawImage(logoImage, {
             x: x,
@@ -167,7 +167,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 1 - First content page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
       addLogoToPage(page1);
-      let yPos = 740; // Lower starting position to accommodate bigger logo
+      let yPos = 720; // Lower starting position with proper spacing from logo
       
       // Full page width margins - minimal side margins
       const leftMargin = 20;
@@ -738,48 +738,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 15;
+      // Ensure we don't go too low to avoid footer overlap
+      if (yPos < 200) yPos = 200;
       const conclusionText = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${proposal.targetReturn}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
       const conclusionLines = wrapText(conclusionText, 480);
       conclusionLines.forEach((line) => {
-        page3.drawText(line, {
-          x: 56,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 12;
+        if (yPos > 180) { // Only draw if there's room above footer
+          page3.drawText(line, {
+            x: 56,
+            y: yPos,
+            size: 9,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          yPos -= 12;
+        }
       });
 
       yPos -= 15;
+      // Ensure we don't go too low before thank you section
+      if (yPos < 180) yPos = 180;
       const thankYouText = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
       const thankYouLines = wrapText(thankYouText, 480);
       thankYouLines.forEach((line) => {
-        page3.drawText(line, {
+        if (yPos > 170) { // Only draw if there's room above footer
+          page3.drawText(line, {
+            x: 56,
+            y: yPos,
+            size: 9,
+            font,
+            color: rgb(0, 0, 0),
+          });
+          yPos -= 12;
+        }
+      });
+
+      yPos -= 20;
+
+      // Kind Regards - only draw if there's room
+      if (yPos > 170) {
+        page3.drawText("Kind Regards", {
           x: 56,
           y: yPos,
-          size: 9,
+          size: 10,
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 12;
-      });
+      }
 
       yPos -= 20;
 
-      // Kind Regards
-      page3.drawText("Kind Regards", {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 20;
-
-      // Add signature image
-      if (signatureImage) {
+      // Add signature image - only if there's room above footer
+      if (signatureImage && yPos > 240) {
         const signatureWidth = 120;
         const signatureHeight = 60;
         
@@ -791,56 +801,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         yPos -= signatureHeight + 10;
-      } else {
+      } else if (yPos > 200) {
         yPos -= 40; // Space for signature if image fails to load
       }
 
-      // CEO signature
-      page3.drawText("Lance E Heynes", {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      // CEO signature - only draw if there's room
+      if (yPos > 170) {
+        page3.drawText("Lance E Heynes", {
+          x: 56,
+          y: yPos,
+          size: 10,
+          font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+      }
 
+      // CEO title - only draw if there's room
       yPos -= 15;
-      page3.drawText("CEO", {
-        x: 56,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
+      if (yPos > 170) {
+        page3.drawText("CEO", {
+          x: 56,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0, 0, 0),
+        });
+      }
 
       yPos -= 30;
 
-      // Contact information
-      page3.drawText("Tel: 081 323 4297", {
-        x: 56,
-        y: yPos,
-        size: 9,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 15;
-      page3.drawText("Email: lance@opianfsgroup.com", {
-        x: 56,
-        y: yPos,
-        size: 9,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 15;
-      page3.drawText("Website: www.opiancapital.com", {
-        x: 56,
-        y: yPos,
-        size: 9,
-        font,
-        color: rgb(0, 0, 0),
-      });
+      // Contact information - only draw if there's room
+      if (yPos > 170) {
+        page3.drawText("Tel: 081 323 4297", {
+          x: 56,
+          y: yPos,
+          size: 9,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        yPos -= 15;
+      }
+      
+      if (yPos > 170) {
+        page3.drawText("Email: lance@opianfsgroup.com", {
+          x: 56,
+          y: yPos,
+          size: 9,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        yPos -= 15;
+      }
+      
+      if (yPos > 170) {
+        page3.drawText("Website: www.opiancapital.com", {
+          x: 56,
+          y: yPos,
+          size: 9,
+          font,
+          color: rgb(0, 0, 0),
+        });
+      }
 
       yPos -= 30;
 
@@ -859,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Footer on all content pages
-      const footerY = 20;
+      const footerY = 130; // Much higher footer position to prevent overlap with content
       const footerText = "Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974\nCompany Registration Number: 2022/272376/07 FSP No: 50974\nCompany Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape\nTel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com";
       
       [page1, page2, page3].forEach((page) => {
