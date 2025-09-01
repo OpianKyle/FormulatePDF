@@ -101,7 +101,9 @@ export default function ProposalForm({ formData, onFormChange, onGenerated }: Pr
 
   const handlePreview = async () => {
     const values = form.getValues();
-    if (!form.formState.isValid) {
+    const isValid = await form.trigger();
+    
+    if (!isValid) {
       toast({
         title: "Form Invalid",
         description: "Please fill in all required fields correctly.",
@@ -111,7 +113,8 @@ export default function ProposalForm({ formData, onFormChange, onGenerated }: Pr
     }
 
     if (!currentProposalId) {
-      await onSubmit(values);
+      const proposal = await createProposalMutation.mutateAsync(values);
+      setCurrentProposalId(proposal.id);
     }
     
     if (currentProposalId) {
@@ -121,7 +124,9 @@ export default function ProposalForm({ formData, onFormChange, onGenerated }: Pr
 
   const handleGenerate = async () => {
     const values = form.getValues();
-    if (!form.formState.isValid) {
+    const isValid = await form.trigger();
+    
+    if (!isValid) {
       toast({
         title: "Form Invalid",
         description: "Please fill in all required fields correctly.",
@@ -130,10 +135,8 @@ export default function ProposalForm({ formData, onFormChange, onGenerated }: Pr
       return;
     }
 
-    await onSubmit(values);
-    if (currentProposalId) {
-      await generatePDFMutation.mutateAsync(currentProposalId);
-    }
+    const proposal = await createProposalMutation.mutateAsync(values);
+    await generatePDFMutation.mutateAsync(proposal.id);
   };
 
   const handleReset = () => {
