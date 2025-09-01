@@ -170,9 +170,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let yPos = 720; // Lower starting position to accommodate logo
       
       // Improved margins - equal left and right spacing
-      const leftMargin = 40;
-      const rightMargin = 20; // Smaller right margin
-      const contentWidth = 595.28 - leftMargin - rightMargin; // 535.28
+      const leftMargin = 20;
+      const rightMargin = 20; // Equal margins
+      const contentWidth = 595.28 - leftMargin - rightMargin; // 555.28
 
       // Dynamic title with investment details
       const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
