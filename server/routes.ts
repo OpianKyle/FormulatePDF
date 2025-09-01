@@ -527,9 +527,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       const peReasons = [
-        "🔘 Higher Returns: PE typically outperforms stocks & bonds.",
-        "🔘 Active Value Creation: Hands-on management improves business performance.",
-        "🔘 Lower Volatility: Unlike public markets, PE is less exposed to short-term fluctuations."
+        "• Higher Returns: PE typically outperforms stocks & bonds.",
+        "• Active Value Creation: Hands-on management improves business performance.",
+        "• Lower Volatility: Unlike public markets, PE is less exposed to short-term fluctuations."
       ];
 
       peReasons.forEach((reason) => {
@@ -677,10 +677,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 20;
       const riskStrategies = [
-        "☑ Diversification across 1-5 high-growth potential companies",
-        "☑ Due Diligence on management teams, financials, and market trends",
-        "☑ Structured Exit Plans (Share swops, IPO, recapitalization, buyouts)",
-        "☑ Co-Investment Model (Reduces exposure via partnerships)"
+        "• Diversification across 1-5 high-growth potential companies",
+        "• Due Diligence on management teams, financials, and market trends",
+        "• Structured Exit Plans (Share swops, IPO, recapitalization, buyouts)",
+        "• Co-Investment Model (Reduces exposure via partnerships)"
       ];
 
       riskStrategies.forEach((strategy) => {
@@ -707,10 +707,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       const whyInvestItems = [
-        "✓ Industry Expertise: Deep knowledge of South African & African markets",
-        "✓ Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
-        "✓ Aligned Interests: We invest alongside clients",
-        "✓ Ownership: We take a large ownership and management stake in companies we invest in"
+        "• Industry Expertise: Deep knowledge of South African & African markets",
+        "• Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
+        "• Aligned Interests: We invest alongside clients",
+        "• Ownership: We take a large ownership and management stake in companies we invest in"
       ];
 
       whyInvestItems.forEach((item) => {
@@ -827,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       // Contact information
-      page3.drawText("📞 081 323 4297", {
+      page3.drawText("Tel: 081 323 4297", {
         x: 56,
         y: yPos,
         size: 9,
@@ -836,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 15;
-      page3.drawText("✉ lance@opianfsgroup.com", {
+      page3.drawText("Email: lance@opianfsgroup.com", {
         x: 56,
         y: yPos,
         size: 9,
@@ -845,7 +845,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 15;
-      page3.drawText("🌐 www.opiancapital.com", {
+      page3.drawText("Website: www.opiancapital.com", {
         x: 56,
         y: yPos,
         size: 9,
