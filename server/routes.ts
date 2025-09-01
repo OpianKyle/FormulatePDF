@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 35; // Reduced space after title
+      yPos -= 20; // Much smaller space after title
 
       // Client information with better spacing
       page1.drawText(`Prepared for: ${proposal.clientName}`, {
@@ -195,7 +195,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 25; // Reduced space after 'Prepared for'
+      yPos -= 15; // Much smaller space after 'Prepared for'
       
       // Word wrap function definition
       const wrapText = (text: string, maxWidth: number) => {
@@ -239,10 +239,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 10; // Even smaller line spacing for address
+        yPos -= 8; // Very tight address line spacing
       });
 
-      yPos -= 15; // Less space after address - let it push date down naturally
+      yPos -= 5; // Minimal space after address to push date down
       
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
