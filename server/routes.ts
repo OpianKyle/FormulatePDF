@@ -239,10 +239,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 15; // Line spacing for address
+        yPos -= 12; // Reduced line spacing for address
       });
 
-      yPos -= 25; // Extra space after address
+      yPos -= 30; // More space after address to prevent date overlap
       
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
@@ -264,8 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
 
-      yPos -= 40;
-      yPos -= 25;
+      yPos -= 30; // Reduced space after 'Dear {Name}'
       page1.drawText("We thank you for your interest in our Private Equity Proposal", {
         x: leftMargin,
         y: yPos,
@@ -739,11 +738,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       // Ensure we don't go too low to avoid footer overlap
-      if (yPos < 200) yPos = 200;
+      if (yPos < 80) yPos = 80; // Ensure content stays above footer
       const conclusionText = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${proposal.targetReturn}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
       const conclusionLines = wrapText(conclusionText, 480);
       conclusionLines.forEach((line) => {
-        if (yPos > 180) { // Only draw if there's room above footer
+        if (yPos > 70) { // Only draw if there's room above footer (footer at y=20+30=50)
           page3.drawText(line, {
             x: 56,
             y: yPos,
@@ -757,11 +756,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       // Ensure we don't go too low before thank you section
-      if (yPos < 180) yPos = 180;
+      if (yPos < 80) yPos = 80; // Ensure content stays above footer
       const thankYouText = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
       const thankYouLines = wrapText(thankYouText, 480);
       thankYouLines.forEach((line) => {
-        if (yPos > 170) { // Only draw if there's room above footer
+        if (yPos > 70) { // Only draw if there's room above footer (footer at y=20+30=50)
           page3.drawText(line, {
             x: 56,
             y: yPos,
@@ -776,7 +775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 20;
 
       // Kind Regards - only draw if there's room
-      if (yPos > 170) {
+      if (yPos > 70) {
         page3.drawText("Kind Regards", {
           x: 56,
           y: yPos,
@@ -789,7 +788,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 20;
 
       // Add signature image - only if there's room above footer
-      if (signatureImage && yPos > 240) {
+      if (signatureImage && yPos > 130) {
         const signatureWidth = 120;
         const signatureHeight = 60;
         
@@ -801,12 +800,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         yPos -= signatureHeight + 10;
-      } else if (yPos > 200) {
+      } else if (yPos > 90) {
         yPos -= 40; // Space for signature if image fails to load
       }
 
       // CEO signature - only draw if there's room
-      if (yPos > 170) {
+      if (yPos > 70) {
         page3.drawText("Lance E Heynes", {
           x: 56,
           y: yPos,
@@ -818,7 +817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // CEO title - only draw if there's room
       yPos -= 15;
-      if (yPos > 170) {
+      if (yPos > 70) {
         page3.drawText("CEO", {
           x: 56,
           y: yPos,
@@ -831,7 +830,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       // Contact information - only draw if there's room
-      if (yPos > 170) {
+      if (yPos > 70) {
         page3.drawText("Tel: 081 323 4297", {
           x: 56,
           y: yPos,
@@ -842,7 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 15;
       }
       
-      if (yPos > 170) {
+      if (yPos > 70) {
         page3.drawText("Email: lance@opianfsgroup.com", {
           x: 56,
           y: yPos,
@@ -853,7 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 15;
       }
       
-      if (yPos > 170) {
+      if (yPos > 70) {
         page3.drawText("Website: www.opiancapital.com", {
           x: 56,
           y: yPos,
@@ -880,7 +879,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Footer on all content pages
-      const footerY = 130; // Much higher footer position to prevent overlap with content
+      const footerY = 20; // Footer positioned 20px from bottom as requested
       const footerText = "Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974\nCompany Registration Number: 2022/272376/07 FSP No: 50974\nCompany Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape\nTel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com";
       
       [page1, page2, page3].forEach((page) => {
