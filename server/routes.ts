@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Load and embed the cover page image
       let coverImage;
       try {
-        const imagePath = path.join(__dirname, '../attached_assets/image_1756727022157.png');
+        const imagePath = path.join(__dirname, '../attached_assets/image_1756729863611.png');
         const imageBytes = await fs.readFile(imagePath);
         coverImage = await pdfDoc.embedPng(imageBytes);
       } catch (error) {
@@ -122,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Embed fonts
+      // Embed fonts for content pages
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
