@@ -149,10 +149,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Function to add logo to page
       const addLogoToPage = (page: any) => {
         if (logoImage) {
-          const logoWidth = 120;
-          const logoHeight = 40;
+          const logoWidth = 180; // Much bigger logo
+          const logoHeight = 60;
           const pageWidth = 595.28;
-          const x = pageWidth - logoWidth - 30; // 30px margin from right edge
+          const x = pageWidth - logoWidth - 20; // 20px margin from right edge
           const y = 800; // Top of the page with some margin
           
           page.drawImage(logoImage, {
@@ -167,59 +167,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 1 - First content page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
       addLogoToPage(page1);
-      let yPos = 720; // Lower starting position to accommodate logo
+      let yPos = 740; // Lower starting position to accommodate bigger logo
       
-      // Improved margins - equal left and right spacing
-      const leftMargin = 40;
-      const rightMargin = 40;
-      const contentWidth = 595.28 - leftMargin - rightMargin; // 515.28
+      // Full page width margins - minimal side margins
+      const leftMargin = 20;
+      const rightMargin = 20;
+      const contentWidth = 595.28 - leftMargin - rightMargin; // 555.28 - much wider
 
-      // Dynamic title with investment details
+      // Dynamic title with investment details - full width
       const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
       page1.drawText(titleText, {
         x: leftMargin,
         y: yPos,
-        size: 12,
+        size: 14,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 40;
+      yPos -= 60; // More space
 
-      // Client information without borders
+      // Client information with better spacing
       page1.drawText(`Prepared for: ${proposal.clientName}`, {
         x: leftMargin,
         y: yPos,
-        size: 10,
-        font,
+        size: 11,
+        font: boldFont,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 20;
-      page1.drawText(`Address: ${proposal.clientAddress}`, {
+      yPos -= 40; // Much more space between sections
+      
+      // Address with word wrapping support for long addresses
+      page1.drawText("Address:", {
         x: leftMargin,
         y: yPos,
-        size: 10,
-        font,
+        size: 11,
+        font: boldFont,
         color: rgb(0, 0, 0),
       });
-
+      
       yPos -= 20;
+      const addressLines = wrapText(proposal.clientAddress, contentWidth - 100);
+      addressLines.forEach((line) => {
+        page1.drawText(line, {
+          x: leftMargin,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        yPos -= 15; // Line spacing for address
+      });
+
+      yPos -= 25; // Extra space after address
+      
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
         y: yPos,
-        size: 10,
-        font,
+        size: 11,
+        font: boldFont,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 40;
+      yPos -= 50; // Large space before Dear section
       
-      // Dear section as heading
+      // Dear section as prominent heading
       page1.drawText(`Dear ${proposal.clientName}`, {
         x: leftMargin,
         y: yPos,
-        size: 14,
+        size: 16,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
@@ -284,28 +300,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .replace(/[^\x00-\x7F]/g, ''); // Remove any remaining non-ASCII characters
       };
 
-      const summaryLines = wrapText(executiveSummary, contentWidth - 20); // Wider content
+      const summaryLines = wrapText(executiveSummary, contentWidth - 40); // Full width content
       summaryLines.forEach((line) => {
         page1.drawText(sanitizeText(line), {
           x: leftMargin,
           y: yPos,
-          size: 9,
+          size: 10,
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 12;
+        yPos -= 14;
       });
 
-      yPos -= 10;
+      yPos -= 15;
       page1.drawText("Key Highlights:", {
         x: leftMargin,
         y: yPos,
-        size: 10,
+        size: 12,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 15;
+      yPos -= 20;
       const highlights = [
         `• Target Return: ${proposal.targetReturn}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualised return).`,
         "• Investment Strategy: Focus on growth equity in high-potential sectors.",
@@ -314,42 +330,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       highlights.forEach((highlight) => {
-        const highlightLines = wrapText(highlight, contentWidth - 40);
+        const highlightLines = wrapText(highlight, contentWidth - 60); // Full width with bullet indent
         highlightLines.forEach((line) => {
           page1.drawText(sanitizeText(line), {
             x: leftMargin + 20, // Indent for bullet points
             y: yPos,
-            size: 9,
+            size: 10,
             font,
             color: rgb(0, 0, 0),
           });
-          yPos -= 12;
+          yPos -= 14;
         });
-        yPos -= 3;
+        yPos -= 5;
       });
 
       // Continue on page 1 with Investment Opportunity section
-      yPos -= 20;
+      yPos -= 25;
       page1.drawText("2. Investment Opportunity & Market Outlook", {
         x: leftMargin,
         y: yPos,
-        size: 11,
+        size: 12,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 15;
+      yPos -= 20;
       const marketText = "Private equity has historically outperformed public markets, delivering 12-25%+ annual returns in emerging markets like South Africa and BRICS. Key sectors with strong growth potential include:";
-      const marketLines = wrapText(marketText, contentWidth - 20);
+      const marketLines = wrapText(marketText, contentWidth - 40); // Full width
       marketLines.forEach((line) => {
         page1.drawText(line, {
           x: leftMargin,
           y: yPos,
-          size: 9,
+          size: 10,
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 12;
+        yPos -= 14;
       });
 
       yPos -= 8;
@@ -363,11 +379,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         page1.drawText(sector, {
           x: leftMargin,
           y: yPos,
-          size: 9,
+          size: 10,
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 12;
+        yPos -= 14;
       });
 
       yPos -= 10;
@@ -375,37 +391,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       page1.drawText(renewableText, {
         x: leftMargin,
         y: yPos,
-        size: 9,
+        size: 10,
         font,
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 15;
+      yPos -= 18;
       const investText = "By investing in early stage but undervalued businesses with strong cash flow, IP and scalability, we position the portfolio for accelerated growth.";
-      const investLines = wrapText(investText, contentWidth - 20);
+      const investLines = wrapText(investText, contentWidth - 40); // Full width
       investLines.forEach((line) => {
         page1.drawText(line, {
           x: leftMargin,
           y: yPos,
-          size: 9,
+          size: 10,
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 12;
+        yPos -= 14;
       });
 
       // PAGE 2 - Second content page
       const page2 = pdfDoc.addPage([595.28, 841.89]);
       addLogoToPage(page2);
-      yPos = 720; // Lower starting position to accommodate logo
-
-      yPos -= 60;
+      yPos = 720; // Lower starting position to accommodate bigger logo
 
       // Investment Structure section
       page2.drawText("3. Proposed Investment Structure", {
         x: leftMargin,
         y: yPos,
-        size: 11,
+        size: 12,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
@@ -611,15 +625,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 3 - Third content page
       const page3 = pdfDoc.addPage([595.28, 841.89]);
       addLogoToPage(page3);
-      yPos = 720; // Lower starting position to accommodate logo
-
-      yPos -= 60;
+      yPos = 720; // Lower starting position to accommodate bigger logo
 
       // Risk Mitigation Strategy
       page3.drawText("5. Risk Mitigation Strategy", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
-        size: 11,
+        size: 12,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
