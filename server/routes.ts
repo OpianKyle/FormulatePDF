@@ -197,6 +197,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 40; // Much more space between sections
       
+      // Word wrap function definition
+      const wrapText = (text: string, maxWidth: number) => {
+        const words = text.split(' ');
+        const lines = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine + (currentLine ? ' ' : '') + word;
+          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              lines.push(word);
+            }
+          } else {
+            currentLine = testLine;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        return lines;
+      };
+
       // Address with word wrapping support for long addresses
       page1.drawText("Address:", {
         x: leftMargin,
@@ -265,27 +288,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
       
       // Word wrap for executive summary
-      const wrapText = (text: string, maxWidth: number) => {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
-            if (currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              lines.push(word);
-            }
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (currentLine) lines.push(currentLine);
-        return lines;
-      };
 
       // Function to sanitize text and remove Unicode characters that can't be encoded
       const sanitizeText = (text: string) => {
