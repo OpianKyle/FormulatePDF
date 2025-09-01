@@ -253,7 +253,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 8; // Very tight address line spacing
       });
 
-      yPos -= 50; // Large space before Dear section
+      yPos -= 30; // More margin below last address line before Dear section
       
       // Dear section as prominent heading
       page1.drawText(`Dear ${proposal.clientName}`, {
