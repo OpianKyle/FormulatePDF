@@ -197,6 +197,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15; // Much smaller space after 'Prepared for'
       
+      // Date first, above address
+      page1.drawText(`Date: ${proposal.proposalDate}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 11,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 25; // Space after date
+
       // Word wrap function definition
       const wrapText = (text: string, maxWidth: number) => {
         const words = text.split(' ');
@@ -240,16 +251,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           color: rgb(0, 0, 0),
         });
         yPos -= 8; // Very tight address line spacing
-      });
-
-      yPos -= 20; // Proper space after address so date is clearly visible below
-      
-      page1.drawText(`Date: ${proposal.proposalDate}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
       });
 
       yPos -= 50; // Large space before Dear section
