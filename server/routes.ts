@@ -59,7 +59,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalProfit = targetValue - proposal.investmentAmount;
       const annualizedReturn = Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
 
-      // Create multiple pages for the full template
+      // Create first page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -85,26 +85,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 60;
-      // Company header with license info
-      const companyInfo = [
-        "Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974",
-        "Company Registration Number: 2022/272376/07 FSP No: 50974",
-        "Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape",
-        "Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com"
-      ];
-
-      companyInfo.forEach((line) => {
-        page1.drawText(line, {
-          x: 50,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 12;
+      
+      // Company info
+      page1.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974", {
+        x: 50,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
+      });
+      yPos -= 12;
+      
+      page1.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974", {
+        x: 50,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
+      });
+      yPos -= 12;
+      
+      page1.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape", {
+        x: 50,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
+      });
+      yPos -= 12;
+      
+      page1.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com", {
+        x: 50,
+        y: yPos,
+        size: 9,
+        font,
+        color: rgb(0, 0, 0),
       });
 
-      yPos -= 20;
+      yPos -= 40;
       page1.drawText("Private Equity Proposal", {
         x: 250,
         y: yPos,
@@ -114,10 +132,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 40;
-      page1.drawText(`Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`, {
+      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
+      page1.drawText(titleText, {
         x: 50,
         y: yPos,
-        size: 14,
+        size: 12,
         font: boldFont,
         color: rgb(0, 0, 0),
       });
@@ -150,20 +169,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 20;
-      // Split address into multiple lines if needed
-      const addressLines = proposal.clientAddress.split('\n');
-      addressLines.forEach((line) => {
-        page1.drawText(line, {
-          x: 50,
-          y: yPos,
-          size: 12,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+      page1.drawText(proposal.clientAddress, {
+        x: 50,
+        y: yPos,
+        size: 12,
+        font,
+        color: rgb(0, 0, 0),
       });
 
-      yPos -= 20;
+      yPos -= 30;
       page1.drawText("Date:", {
         x: 50,
         y: yPos,
@@ -209,119 +223,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       yPos -= 20;
-      const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
+      const summaryText = `This proposal outlines a strategic private equity investment strategy designed to grow`;
+      page1.drawText(summaryText, {
+        x: 50,
+        y: yPos,
+        size: 10,
+        font,
+        color: rgb(0, 0, 0),
+      });
       
-      // Word wrap function
-      const wrapText = (text: string, maxWidth: number, fontSize: number, font: any) => {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          const textWidth = font.widthOfTextAtSize(testLine, fontSize);
-          
-          if (textWidth > maxWidth && currentLine) {
-            lines.push(currentLine);
-            currentLine = word;
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (currentLine) lines.push(currentLine);
-        return lines;
-      };
-
-      const summaryLines = wrapText(executiveSummary, 500, 10, font);
-      summaryLines.forEach((line) => {
-        page1.drawText(line, {
-          x: 50,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+      yPos -= 15;
+      const summaryText2 = `an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% over a ${proposal.timeHorizon}-year horizon.`;
+      page1.drawText(summaryText2, {
+        x: 50,
+        y: yPos,
+        size: 10,
+        font,
+        color: rgb(0, 0, 0),
       });
 
-      // Add second page for more content
+      // Create second page
       const page2 = pdfDoc.addPage([595.28, 841.89]);
       yPos = 800;
 
-      // Key Highlights
-      page2.drawText("Key Highlights:", {
-        x: 50,
-        y: yPos,
-        size: 12,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 20;
-      const highlights = [
-        `➢ Target Return: ${proposal.targetReturn}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualized return).`,
-        "➢ Investment Strategy: Focus on growth equity in high-potential sectors.",
-        "➢ Risk Management: Portfolio diversification, and active management.",
-        `➢ Exit Strategy: Share buybacks, IPOs, or secondary buyouts after ${proposal.timeHorizon} years.`
-      ];
-
-      highlights.forEach((highlight) => {
-        const highlightLines = wrapText(highlight, 500, 10, font);
-        highlightLines.forEach((line) => {
-          page2.drawText(line, {
-            x: 70,
-            y: yPos,
-            size: 10,
-            font,
-            color: rgb(0, 0, 0),
-          });
-          yPos -= 15;
-        });
-      });
-
-      // Proposed Investment Structure
-      yPos -= 30;
-      page2.drawText("3. Proposed Investment Structure", {
-        x: 50,
-        y: yPos,
-        size: 14,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 30;
-      const structureData = [
-        ["Component", "Details"],
-        ["Investment Amount", `R${proposal.investmentAmount.toLocaleString()}`],
-        ["Target Return", `R${targetValue.toLocaleString()} (${proposal.targetReturn}% growth)`],
-        ["Time Horizon", `${proposal.timeHorizon} years`],
-        ["Annualised Return", `~${(annualizedReturn * 100).toFixed(1)}%`],
-        ["Investment Vehicle", "Private Equity / Direct Investment"],
-        ["Key Sectors", "FinTech, Lifestyle, Online Education"]
-      ];
-
-      // Draw table
-      structureData.forEach((row, index) => {
-        const isHeader = index === 0;
-        page2.drawText(row[0], {
-          x: 50,
-          y: yPos,
-          size: 10,
-          font: isHeader ? boldFont : font,
-          color: rgb(0, 0, 0),
-        });
-        page2.drawText(row[1], {
-          x: 300,
-          y: yPos,
-          size: 10,
-          font: isHeader ? boldFont : font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 18;
-      });
-
       // Projected Returns & Cash Flow
-      yPos -= 30;
       page2.drawText("4. Projected Returns & Cash Flow", {
         x: 50,
         y: yPos,
@@ -330,83 +255,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
 
-      yPos -= 30;
+      yPos -= 40;
       // Table headers
-      const headers = ["Year", "Shares Issued", "Div Allocation", "Div Return", "Growth (%)", "Investment Value"];
-      const xPositions = [50, 120, 200, 280, 360, 440];
+      page2.drawText("Year", { x: 50, y: yPos, size: 10, font: boldFont });
+      page2.drawText("Shares Issued", { x: 120, y: yPos, size: 10, font: boldFont });
+      page2.drawText("Div Allocation", { x: 200, y: yPos, size: 10, font: boldFont });
+      page2.drawText("Div Return", { x: 280, y: yPos, size: 10, font: boldFont });
+      page2.drawText("Growth %", { x: 360, y: yPos, size: 10, font: boldFont });
+      page2.drawText("Investment Value", { x: 440, y: yPos, size: 10, font: boldFont });
+
+      yPos -= 25;
       
-      headers.forEach((header, i) => {
-        page2.drawText(header, {
-          x: xPositions[i],
-          y: yPos,
-          size: 9,
-          font: boldFont,
-          color: rgb(0, 0, 0),
-        });
-      });
+      // Year 0
+      page2.drawText("Year 0", { x: 50, y: yPos, size: 9, font });
+      page2.drawText("-", { x: 120, y: yPos, size: 9, font });
+      page2.drawText("-", { x: 200, y: yPos, size: 9, font });
+      page2.drawText("-", { x: 280, y: yPos, size: 9, font });
+      page2.drawText("-", { x: 360, y: yPos, size: 9, font });
+      page2.drawText(`R${proposal.investmentAmount.toLocaleString()}`, { x: 440, y: yPos, size: 9, font });
 
       yPos -= 20;
       
-      // Table data
-      const tableData = [
-        ["Year 0", "-", "-", "-", "-", `R${proposal.investmentAmount.toLocaleString()}`],
-        ["Year 1", Math.floor(sharesIssued).toLocaleString(), proposal.year1Dividend.toFixed(3), `R${year1Return.toLocaleString()}`, `${year1Growth.toFixed(2)}%`, `R${year1Value.toLocaleString()}`],
-        ["Year 2", Math.floor(sharesIssued).toLocaleString(), proposal.year2Dividend.toFixed(3), `R${year2Return.toLocaleString()}`, `${year2Growth.toFixed(2)}%`, `R${year2Value.toLocaleString()}`],
-        ["Year 3", Math.floor(sharesIssued).toLocaleString(), proposal.year3Dividend.toFixed(3), `R${year3Return.toLocaleString()}`, `${year3Growth.toFixed(2)}%`, `R${year3Value.toLocaleString()}`]
-      ];
+      // Year 1
+      page2.drawText("Year 1", { x: 50, y: yPos, size: 9, font });
+      page2.drawText(Math.floor(sharesIssued).toLocaleString(), { x: 120, y: yPos, size: 9, font });
+      page2.drawText(proposal.year1Dividend.toFixed(3), { x: 200, y: yPos, size: 9, font });
+      page2.drawText(`R${year1Return.toLocaleString()}`, { x: 280, y: yPos, size: 9, font });
+      page2.drawText(`${year1Growth.toFixed(2)}%`, { x: 360, y: yPos, size: 9, font });
+      page2.drawText(`R${year1Value.toLocaleString()}`, { x: 440, y: yPos, size: 9, font });
 
-      tableData.forEach((row) => {
-        row.forEach((cell, i) => {
-          page2.drawText(cell, {
-            x: xPositions[i],
-            y: yPos,
-            size: 8,
-            font,
-            color: rgb(0, 0, 0),
-          });
-        });
-        yPos -= 18;
-      });
-
-      // Notes
       yPos -= 20;
-      const notes = [
-        "• Note: While returns are based on historical PE performance; actual results may vary.",
-        "• Fund Value is non liquid",
-        "• The investment is locked into the period with no access to investment"
-      ];
+      
+      // Year 2
+      page2.drawText("Year 2", { x: 50, y: yPos, size: 9, font });
+      page2.drawText(Math.floor(sharesIssued).toLocaleString(), { x: 120, y: yPos, size: 9, font });
+      page2.drawText(proposal.year2Dividend.toFixed(3), { x: 200, y: yPos, size: 9, font });
+      page2.drawText(`R${year2Return.toLocaleString()}`, { x: 280, y: yPos, size: 9, font });
+      page2.drawText(`${year2Growth.toFixed(2)}%`, { x: 360, y: yPos, size: 9, font });
+      page2.drawText(`R${year2Value.toLocaleString()}`, { x: 440, y: yPos, size: 9, font });
 
-      notes.forEach((note) => {
-        page2.drawText(note, {
-          x: 70,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+      yPos -= 20;
+      
+      // Year 3
+      page2.drawText("Year 3", { x: 50, y: yPos, size: 9, font });
+      page2.drawText(Math.floor(sharesIssued).toLocaleString(), { x: 120, y: yPos, size: 9, font });
+      page2.drawText(proposal.year3Dividend.toFixed(3), { x: 200, y: yPos, size: 9, font });
+      page2.drawText(`R${year3Return.toLocaleString()}`, { x: 280, y: yPos, size: 9, font });
+      page2.drawText(`${year3Growth.toFixed(2)}%`, { x: 360, y: yPos, size: 9, font });
+      page2.drawText(`R${year3Value.toLocaleString()}`, { x: 440, y: yPos, size: 9, font });
+
+      // Footer
+      const footerY = 50;
+      page1.drawText("Opian Capital (Pty) Ltd - FSP No: 50974", {
+        x: 50,
+        y: footerY,
+        size: 8,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
       });
-
-      // Footer on both pages
-      const footerLines = [
-        "Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974",
-        "Company Registration Number: 2022/272376/07 FSP No: 50974",
-        "Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape",
-        "Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com"
-      ];
-
-      [page1, page2].forEach((page) => {
-        let footerY = 50;
-        footerLines.forEach((line) => {
-          page.drawText(line, {
-            x: 50,
-            y: footerY,
-            size: 7,
-            font,
-            color: rgb(0.5, 0.5, 0.5),
-          });
-          footerY -= 10;
-        });
+      
+      page2.drawText("Opian Capital (Pty) Ltd - FSP No: 50974", {
+        x: 50,
+        y: footerY,
+        size: 8,
+        font,
+        color: rgb(0.5, 0.5, 0.5),
       });
 
       const pdfBytes = await pdfDoc.save();
@@ -415,7 +328,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Disposition', `attachment; filename="proposal-${proposal.clientName.replace(/\s+/g, '-')}.pdf"`);
       res.send(Buffer.from(pdfBytes));
     } catch (error) {
-      res.status(500).json({ error: "Failed to generate PDF" });
+      console.error("PDF generation error:", error);
+      res.status(500).json({ error: "Failed to generate PDF", details: error instanceof Error ? error.message : String(error) });
     }
   });
 
