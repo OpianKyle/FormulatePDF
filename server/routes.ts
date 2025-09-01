@@ -5,6 +5,10 @@ import { insertProposalSchema, type ProposalForm } from "@shared/schema";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fs from "fs/promises";
 import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Get all proposals
@@ -59,7 +63,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalProfit = targetValue - proposal.investmentAmount;
       const annualizedReturn = Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
 
-      // Create first page
+      // Load and embed the cover page image
+      let coverImage;
+      try {
+        const imagePath = path.join(__dirname, '../attached_assets/image_1756727022157.png');
+        const imageBytes = await fs.readFile(imagePath);
+        coverImage = await pdfDoc.embedPng(imageBytes);
+      } catch (error) {
+        console.warn('Could not load cover image, using text-only cover page');
+      }
+
+      // Create cover page
+      const coverPage = pdfDoc.addPage([595.28, 841.89]); // A4 size
+      
+      if (coverImage) {
+        // Scale image to fit the page while maintaining aspect ratio
+        const { width, height } = coverImage.scale(1);
+        const pageWidth = 595.28;
+        const pageHeight = 841.89;
+        
+        // Calculate scale to fit page
+        const scaleX = pageWidth / width;
+        const scaleY = pageHeight / height;
+        const scale = Math.min(scaleX, scaleY);
+        
+        const scaledWidth = width * scale;
+        const scaledHeight = height * scale;
+        
+        // Center the image on the page
+        const x = (pageWidth - scaledWidth) / 2;
+        const y = (pageHeight - scaledHeight) / 2;
+        
+        coverPage.drawImage(coverImage, {
+          x,
+          y,
+          width: scaledWidth,
+          height: scaledHeight,
+        });
+      } else {
+        // Fallback text-only cover page
+        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        
+        coverPage.drawText("OPIAN CAPITAL", {
+          x: 200,
+          y: 600,
+          size: 24,
+          font: boldFont,
+          color: rgb(0.8, 0.7, 0.2), // Gold color
+        });
+        
+        coverPage.drawText("PRIVATE EQUITY PROPOSAL", {
+          x: 150,
+          y: 400,
+          size: 20,
+          font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+      }
+
+      // Create content page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -304,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       page2.drawText(`${year3Growth.toFixed(2)}%`, { x: 360, y: yPos, size: 9, font });
       page2.drawText(`R${year3Value.toLocaleString()}`, { x: 440, y: yPos, size: 9, font });
 
-      // Footer
+      // Footer on content pages
       const footerY = 50;
       page1.drawText("Opian Capital (Pty) Ltd - FSP No: 50974", {
         x: 50,
