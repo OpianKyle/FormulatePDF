@@ -242,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 8; // Very tight address line spacing
       });
 
-      yPos -= 5; // Minimal space after address to push date down
+      yPos -= 20; // Proper space after address so date is clearly visible below
       
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
