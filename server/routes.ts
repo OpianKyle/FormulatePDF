@@ -333,10 +333,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       const highlights = [
-        `➤ Target Return: ${proposal.targetReturn}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualised return).`,
-        "➤ Investment Strategy: Focus on growth equity in high-potential sectors.",
-        "➤ Risk Management: Portfolio diversification, and active management.",
-        `➤ Exit Strategy: Share buybacks, IPOs, or secondary buyouts after ${proposal.timeHorizon} years.`
+        `• Target Return: ${proposal.targetReturn}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualised return).`,
+        "• Investment Strategy: Focus on growth equity in high-potential sectors.",
+        "• Risk Management: Portfolio diversification, and active management.",
+        `• Exit Strategy: Share buybacks, IPOs, or secondary buyouts after ${proposal.timeHorizon} years.`
       ];
 
       highlights.forEach((highlight) => {
