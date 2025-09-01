@@ -197,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15; // Much smaller space after 'Prepared for'
       
-      // Date first, above address
+      // Date positioned above address as requested
       page1.drawText(`Date: ${proposal.proposalDate}`, {
         x: leftMargin,
         y: yPos,
