@@ -557,7 +557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       page3.drawText("8. Conclusion", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
 
-      const conclusion = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${calculatedTargetReturn.toFixed(0)}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
+      const conclusion = "This private equity strategy offers a compelling opportunity for superior growth on your investment by leveraging equity in high-growth, privately held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.";
       yPos = drawJustifiedText(page3, conclusion, leftMargin, yPos, contentWidth, font, 10);
 
       yPos -= 15;
@@ -589,9 +589,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 12;
       page3.drawText("Website: www.opiancapital.com", { x: leftMargin, y: yPos, size: 10, font });
 
-      yPos -= 25;
-      const disclaimer = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before making investment decisions.*";
+      yPos -= 30;
+      const disclaimer = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
       yPos = drawJustifiedText(page3, disclaimer, leftMargin, yPos, contentWidth, font, 8);
+
+      yPos -= 15;
+      const proposal_agreement = "*This proposal, when signed and accepted, will become part of the Agreement with the client";
+      yPos = drawJustifiedText(page3, proposal_agreement, leftMargin, yPos, contentWidth, font, 8);
+
+      yPos -= 25;
+      page3.drawText("CLIENT CONFIRMATION", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      yPos -= 15;
+
+      const client_confirmation = "I, The undersigned, hereby accept the proposal as outlined in the documentation contained herein. I confirmed that I had made an informed decision based on my own financial product experience and/or external consultation with professionals. I confirm that I have the financial capacity to enter into this agreement and also the additional financial resources which allow me the opportunity to enter the waiting periods/ lock up periods/ and or risk associated with this product";
+      yPos = drawJustifiedText(page3, client_confirmation, leftMargin, yPos, contentWidth, font, 9);
+
+      yPos -= 25;
+      page3.drawText("Signed at _________________________ on _____ _______ 202____", { x: leftMargin, y: yPos, size: 10, font });
+      yPos -= 25;
+      page3.drawText("Signature of Client: _________________________________________________", { x: leftMargin, y: yPos, size: 10, font });
+      yPos -= 20;
+      page3.drawText("Name of Client: _____________________________________________________", { x: leftMargin, y: yPos, size: 10, font });
+      yPos -= 20;
+      page3.drawText("Date Signed: _______________________________________________________", { x: leftMargin, y: yPos, size: 10, font });
 
       // Save & send
       const pdfBytes = await pdfDoc.save();
