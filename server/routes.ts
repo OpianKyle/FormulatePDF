@@ -93,7 +93,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn('Could not load signature image');
       }
 
-      // Create cover page
+      // Embed fonts for content pages
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      // Create cover page with company header
       const coverPage = pdfDoc.addPage([595.28, 841.89]); // A4 size
       
       if (coverImage) {
@@ -121,102 +125,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
           height: scaledHeight,
         });
       } else {
-        // Fallback text-only cover page
-        const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        // Text-only cover page with proper company header
+        let yPos = 800;
+        const leftMargin = 40;
+        const contentWidth = 595.28 - 80; // Full width with margins
         
+        // Company header
         coverPage.drawText("OPIAN CAPITAL", {
-          x: 200,
-          y: 600,
+          x: leftMargin,
+          y: yPos,
           size: 24,
           font: boldFont,
-          color: rgb(0.8, 0.7, 0.2), // Gold color
+          color: rgb(0, 0, 0),
         });
         
+        yPos -= 30;
         coverPage.drawText("PRIVATE EQUITY PROPOSAL", {
-          x: 150,
-          y: 400,
-          size: 20,
+          x: leftMargin,
+          y: yPos,
+          size: 18,
           font: boldFont,
+          color: rgb(0, 0, 0),
+        });
+        
+        yPos -= 25;
+        coverPage.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974", {
+          x: leftMargin,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        yPos -= 15;
+        coverPage.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974", {
+          x: leftMargin,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        yPos -= 15;
+        coverPage.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape", {
+          x: leftMargin,
+          y: yPos,
+          size: 10,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        yPos -= 15;
+        coverPage.drawText("Tel: 0861 263 346 I Email: info@opianfsgroup.com I Website: www.opianfsgroup.com", {
+          x: leftMargin,
+          y: yPos,
+          size: 10,
+          font,
           color: rgb(0, 0, 0),
         });
       }
 
-      // Embed fonts for content pages
-      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-      // Function to add logo to page
-      const addLogoToPage = (page: any) => {
-        if (logoImage) {
-          const logoWidth = 180; // Much bigger logo
-          const logoHeight = 60;
-          const pageWidth = 595.28;
-          const x = pageWidth - logoWidth - 20; // 20px margin from right edge
-          const y = 780; // More reasonable top margin (was 800, too close to edge)
-          
-          page.drawImage(logoImage, {
-            x: x,
-            y: y,
-            width: logoWidth,
-            height: logoHeight,
-          });
-        }
+      // Function to add footer to page
+      const addFooterToPage = (page: any) => {
+        const footerY = 40;
+        const leftMargin = 40;
+        
+        page.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974", {
+          x: leftMargin,
+          y: footerY + 30,
+          size: 8,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        page.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974", {
+          x: leftMargin,
+          y: footerY + 20,
+          size: 8,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        page.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape", {
+          x: leftMargin,
+          y: footerY + 10,
+          size: 8,
+          font,
+          color: rgb(0, 0, 0),
+        });
+        
+        page.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com", {
+          x: leftMargin,
+          y: footerY,
+          size: 8,
+          font,
+          color: rgb(0, 0, 0),
+        });
       };
 
       // PAGE 1 - First content page
       const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
-      addLogoToPage(page1);
-      let yPos = 720; // Lower starting position with proper spacing from logo
+      addFooterToPage(page1);
       
-      // Full page width margins - minimal side margins
-      const leftMargin = 20;
-      const rightMargin = 20;
-      const contentWidth = 595.28 - leftMargin - rightMargin; // 555.28 - much wider
-
-      // Dynamic title with investment details - full width
-      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
-      page1.drawText(titleText, {
-        x: leftMargin,
-        y: yPos,
-        size: 14,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 20; // Much smaller space after title
-
-      // Client information with better spacing
-      page1.drawText(`Prepared for: ${proposal.clientName}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 15; // Much smaller space after 'Prepared for'
+      let yPos = 780; // Start from top
+      const leftMargin = 40;
+      const rightMargin = 40;
+      const contentWidth = 595.28 - leftMargin - rightMargin; // Full width with margins
       
-      // Date positioned above address as requested
-      page1.drawText(`Date: ${proposal.proposalDate}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 25; // Space after date
-
       // Word wrap function definition
-      const wrapText = (text: string, maxWidth: number) => {
+      const wrapText = (text: string, maxWidth: number, fontSize: number = 10) => {
         const words = text.split(' ');
         const lines = [];
         let currentLine = '';
+        const charWidth = fontSize * 0.6; // Approximate character width
         
         for (const word of words) {
           const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          if (testLine.length * 6 > maxWidth) { // Rough character width estimation
+          if (testLine.length * charWidth > maxWidth) {
             if (currentLine) {
               lines.push(currentLine);
               currentLine = word;
@@ -231,7 +256,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return lines;
       };
 
-      // Address with word wrapping support for long addresses
+      // Dynamic title with investment details - full width
+      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
+      page1.drawText(titleText, {
+        x: leftMargin,
+        y: yPos,
+        size: 14,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 25;
+
+      // Client information
+      page1.drawText(`Prepared for: ${proposal.clientName}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 11,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 20;
+      
+      // Date
+      page1.drawText(`Date: ${proposal.proposalDate}`, {
+        x: leftMargin,
+        y: yPos,
+        size: 11,
+        font: boldFont,
+        color: rgb(0, 0, 0),
+      });
+
+      yPos -= 25;
+
+      // Address with 3-line spacing as requested
       page1.drawText("Address:", {
         x: leftMargin,
         y: yPos,
@@ -240,9 +299,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         color: rgb(0, 0, 0),
       });
       
-      yPos -= 20;
-      const addressLines = wrapText(proposal.clientAddress, contentWidth - 100);
-      addressLines.forEach((line) => {
+      yPos -= 15;
+      // Address lines with 3-line spacing as requested
+      const addressLines = proposal.clientAddress.split('\n');
+      addressLines.forEach((line, index) => {
         page1.drawText(line, {
           x: leftMargin,
           y: yPos,
@@ -250,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           font,
           color: rgb(0, 0, 0),
         });
-        yPos -= 8; // Very tight address line spacing
+        yPos -= 15; // 3-line spacing as requested
       });
 
       yPos -= 50; // Much larger margin below address block to prevent overlap with Dear section
@@ -414,8 +474,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // PAGE 2 - Second content page
       const page2 = pdfDoc.addPage([595.28, 841.89]);
-      addLogoToPage(page2);
-      yPos = 720; // Lower starting position to accommodate bigger logo
+      addFooterToPage(page2);
+      yPos = 780; // Start from top
 
       // Investment Structure section
       page2.drawText("3. Proposed Investment Structure", {
@@ -447,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Table border
       page2.drawRectangle({
-        x: 56,
+        x: leftMargin,
         y: tableStartY - (rowHeight * tableData.length),
         width: col1Width + col2Width,
         height: rowHeight * tableData.length,
@@ -500,7 +560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Why Private Equity section
       page2.drawText("Why Private Equity?", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 10,
         font: boldFont,
@@ -529,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Projected Returns & Cash Flow
       page2.drawText("4. Projected Returns & Cash Flow", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -559,7 +619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Table border
       page2.drawRectangle({
-        x: 56,
+        x: leftMargin,
         y: tableTop - tableHeight,
         width: colWidths.reduce((a, b) => a + b, 0),
         height: tableHeight,
@@ -626,7 +686,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // PAGE 3 - Third content page
       const page3 = pdfDoc.addPage([595.28, 841.89]);
-      addLogoToPage(page3);
+      addFooterToPage(page3);
       yPos = 720; // Lower starting position to accommodate bigger logo
 
       // Risk Mitigation Strategy
@@ -640,7 +700,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
       page3.drawText("To safeguard capital while pursuing high returns, we implement:", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 9,
         font,
@@ -670,7 +730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Why Invest With Us section
       page3.drawText("6. Why Invest With Us?", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -700,7 +760,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Next Steps
       page3.drawText("7. Next Steps", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -730,7 +790,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Conclusion
       page3.drawText("8. Conclusion", {
-        x: 56,
+        x: leftMargin,
         y: yPos,
         size: 11,
         font: boldFont,
@@ -745,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       conclusionLines.forEach((line) => {
         if (yPos > 70) { // Only draw if there's room above footer (footer at y=20+30=50)
           page3.drawText(line, {
-            x: 56,
+            x: leftMargin,
             y: yPos,
             size: 9,
             font,
@@ -763,7 +823,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       thankYouLines.forEach((line) => {
         if (yPos > 70) { // Only draw if there's room above footer (footer at y=20+30=50)
           page3.drawText(line, {
-            x: 56,
+            x: leftMargin,
             y: yPos,
             size: 9,
             font,
@@ -778,7 +838,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Kind Regards - only draw if there's room
       if (yPos > 70) {
         page3.drawText("Kind Regards", {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 10,
           font,
@@ -794,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const signatureHeight = 60;
         
         page3.drawImage(signatureImage, {
-          x: 56,
+          x: leftMargin,
           y: yPos - signatureHeight,
           width: signatureWidth,
           height: signatureHeight,
@@ -808,7 +868,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // CEO signature - only draw if there's room
       if (yPos > 70) {
         page3.drawText("Lance E Heynes", {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 10,
           font: boldFont,
@@ -820,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 15;
       if (yPos > 70) {
         page3.drawText("CEO", {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 10,
           font,
@@ -833,7 +893,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Contact information - only draw if there's room
       if (yPos > 70) {
         page3.drawText("Tel: 081 323 4297", {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -844,7 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (yPos > 70) {
         page3.drawText("Email: lance@opianfsgroup.com", {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -855,7 +915,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (yPos > 70) {
         page3.drawText("Website: www.opiancapital.com", {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 9,
           font,
@@ -870,7 +930,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const disclaimerLines = wrapText(disclaimerText, 480);
       disclaimerLines.forEach((line) => {
         page3.drawText(line, {
-          x: 56,
+          x: leftMargin,
           y: yPos,
           size: 8,
           font,
