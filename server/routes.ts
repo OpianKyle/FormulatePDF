@@ -1,11 +1,11 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProposalSchema, type ProposalForm } from "@shared/schema";
+import { insertProposalSchema } from "@shared/schema";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fs from "fs/promises";
 import path from "path";
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,20 +37,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const proposal = await storage.getProposal(id);
-      
+
       if (!proposal) {
         return res.status(404).json({ error: "Proposal not found" });
       }
 
       // Create PDF document
       const pdfDoc = await PDFDocument.create();
-      
+
       // Calculate investment projections
       const sharesIssued = proposal.investmentAmount / 8; // Assuming R8 per share
       const year1Return = sharesIssued * proposal.year1Dividend;
       const year2Return = sharesIssued * proposal.year2Dividend;
       const year3Return = sharesIssued * proposal.year3Dividend;
-      
+
       const year1Value = proposal.investmentAmount + year1Return;
       const year2Value = year1Value + year2Return;
       const year3Value = year2Value + year3Return;
@@ -59,45 +59,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const year2Growth = (year2Return / year1Value) * 100;
       const year3Growth = (year3Return / year2Value) * 100;
 
-      const targetValue = proposal.investmentAmount * (1 + proposal.targetReturn / 100);
+      const targetValue =
+        proposal.investmentAmount * (1 + proposal.targetReturn / 100);
       const totalProfit = targetValue - proposal.investmentAmount;
-      const annualizedReturn = Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
+      const annualizedReturn =
+        Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
 
-      // Load and embed the cover page image
-      let coverImage;
+      // Load and embed images
+      let coverImage, logoImage: any, signatureImage;
       try {
-        const imagePath = path.join(__dirname, '../attached_assets/image_1756730534595.png');
+        const imagePath = path.join(
+          __dirname,
+          "../attached_assets/image_1756730534595.png"
+        );
         const imageBytes = await fs.readFile(imagePath);
         coverImage = await pdfDoc.embedPng(imageBytes);
       } catch (error) {
-        console.warn('Could not load cover image, using text-only cover page');
+        console.warn("Could not load cover image, using text-only cover page");
       }
 
-      // Load and embed the logo for content pages
-      let logoImage: any = null;
       try {
-        const logoPath = path.join(__dirname, '../attached_assets/image_1756732571502.png');
+        const logoPath = path.join(
+          __dirname,
+          "../attached_assets/image_1756732571502.png"
+        );
         const logoBytes = await fs.readFile(logoPath);
         logoImage = await pdfDoc.embedPng(logoBytes);
       } catch (error) {
-        console.warn('Could not load logo image');
+        console.warn("Could not load logo image");
       }
 
-      // Load and embed the signature image
-      let signatureImage;
       try {
-        const signaturePath = path.join(__dirname, '../attached_assets/image_1756732618787.png');
+        const signaturePath = path.join(
+          __dirname,
+          "../attached_assets/image_1756732618787.png"
+        );
         const signatureBytes = await fs.readFile(signaturePath);
         signatureImage = await pdfDoc.embedPng(signatureBytes);
       } catch (error) {
-        console.warn('Could not load signature image');
+        console.warn("Could not load signature image");
       }
 
-      // Embed fonts for content pages
+      // Fonts
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-      // Create cover page with company header
+      // ✅ Helper: Draw fully justified text
+      const drawJustifiedText = (
+        page: any,
+        text: string,
+        x: number,
+        y: number,
+        maxWidth: number,
+        font: any,
+        fontSize: number = 10,
+        lineSpacing: number = 14
+      ) => {
+        const words = text.split(" ");
+        let lines: string[][] = [];
+        let currentLine: string[] = [];
+
+        words.forEach((word) => {
+          const testLine = [...currentLine, word];
+          const textWidth = font.widthOfTextAtSize(testLine.join(" "), fontSize);
+          if (textWidth > maxWidth && currentLine.length > 0) {
+            lines.push(currentLine);
+            currentLine = [word];
+          } else {
+            currentLine = testLine;
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+
+        lines.forEach((lineWords, i) => {
+          const lineText = lineWords.join(" ");
+          const lineWidth = font.widthOfTextAtSize(lineText, fontSize);
+
+          if (i === lines.length - 1 || lineWords.length === 1) {
+            page.drawText(lineText, { x, y, size: fontSize, font, color: rgb(0, 0, 0) });
+          } else {
+            const extraSpace = (maxWidth - lineWidth) / (lineWords.length - 1);
+            let cursorX = x;
+            lineWords.forEach((word) => {
+              page.drawText(word, { x: cursorX, y, size: fontSize, font, color: rgb(0, 0, 0) });
+              cursorX += font.widthOfTextAtSize(word, fontSize) + extraSpace;
+            });
+          }
+          y -= lineSpacing;
+        });
+
+        return y;
+      };
+
+      // Footer
+      const addFooterToPage = (page: any) => {
+        const footerY = 40;
+        const leftMargin = 40;
+        page.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974",
+          { x: leftMargin, y: footerY + 30, size: 8, font, color: rgb(0, 0, 0) });
+        page.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974",
+          { x: leftMargin, y: footerY + 20, size: 8, font, color: rgb(0, 0, 0) });
+        page.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape",
+          { x: leftMargin, y: footerY + 10, size: 8, font, color: rgb(0, 0, 0) });
+        page.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com",
+          { x: leftMargin, y: footerY, size: 8, font, color: rgb(0, 0, 0) });
+      };
+
+      // Create cover page
       const coverPage = pdfDoc.addPage([595.28, 841.89]); // A4 size
       
       if (coverImage) {
@@ -128,7 +196,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Text-only cover page with proper company header
         let yPos = 800;
         const leftMargin = 40;
-        const contentWidth = 595.28 - 80; // Full width with margins
         
         // Company header
         coverPage.drawText("OPIAN CAPITAL", {
@@ -185,205 +252,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Function to add footer to page
-      const addFooterToPage = (page: any) => {
-        const footerY = 40;
-        const leftMargin = 40;
-        
-        page.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974", {
-          x: leftMargin,
-          y: footerY + 30,
-          size: 8,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        
-        page.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974", {
-          x: leftMargin,
-          y: footerY + 20,
-          size: 8,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        
-        page.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape", {
-          x: leftMargin,
-          y: footerY + 10,
-          size: 8,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        
-        page.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com", {
-          x: leftMargin,
-          y: footerY,
-          size: 8,
-          font,
-          color: rgb(0, 0, 0),
-        });
-      };
-
-      // PAGE 1 - First content page
-      const page1 = pdfDoc.addPage([595.28, 841.89]); // A4 size
+      // PAGE 1
+      const page1 = pdfDoc.addPage([595.28, 841.89]);
       addFooterToPage(page1);
-      
-      let yPos = 780; // Start from top
+      let yPos = 780;
       const leftMargin = 40;
-      const rightMargin = 40;
-      const contentWidth = 595.28 - leftMargin - rightMargin; // Full width with margins
-      
-      // Word wrap function definition
-      const wrapText = (text: string, maxWidth: number, fontSize: number = 10) => {
-        const words = text.split(' ');
-        const lines = [];
-        let currentLine = '';
-        const charWidth = fontSize * 0.6; // Approximate character width
-        
-        for (const word of words) {
-          const testLine = currentLine + (currentLine ? ' ' : '') + word;
-          if (testLine.length * charWidth > maxWidth) {
-            if (currentLine) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              lines.push(word);
-            }
-          } else {
-            currentLine = testLine;
-          }
-        }
-        if (currentLine) lines.push(currentLine);
-        return lines;
-      };
+      const contentWidth = 595.28 - 80;
 
-      // Dynamic title with investment details - full width
+      // Title
       const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
-      page1.drawText(titleText, {
-        x: leftMargin,
-        y: yPos,
-        size: 14,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      page1.drawText(titleText, { x: leftMargin, y: yPos, size: 14, font: boldFont });
 
       yPos -= 25;
-
-      // Client information
-      page1.drawText(`Prepared for: ${proposal.clientName}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      page1.drawText(`Prepared for: ${proposal.clientName}`, { x: leftMargin, y: yPos, size: 11, font: boldFont });
 
       yPos -= 20;
-      
-      // Date
-      page1.drawText(`Date: ${proposal.proposalDate}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      page1.drawText(`Date: ${proposal.proposalDate}`, { x: leftMargin, y: yPos, size: 11, font: boldFont });
 
       yPos -= 25;
-
-      // Address with 3-line spacing as requested
-      page1.drawText("Address:", {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-      
+      page1.drawText("Address:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
-      // Address lines with 3-line spacing as requested
-      const addressLines = proposal.clientAddress.split('\n');
-      addressLines.forEach((line, index) => {
-        page1.drawText(line, {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15; // 3-line spacing as requested
+      proposal.clientAddress.split("\\n").forEach((line) => {
+        page1.drawText(line, { x: leftMargin, y: yPos, size: 10, font });
+        yPos -= 15;
       });
 
-      yPos -= 50; // Much larger margin below address block to prevent overlap with Dear section
-      
-      // Dear section as prominent heading
-      page1.drawText(`Dear ${proposal.clientName}`, {
-        x: leftMargin,
-        y: yPos,
-        size: 16,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
-
-      yPos -= 30; // Reduced space after 'Dear {Name}'
-      page1.drawText("We thank you for your interest in our Private Equity Proposal", {
-        x: leftMargin,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
+      yPos -= 50;
+      page1.drawText(`Dear ${proposal.clientName}`, { x: leftMargin, y: yPos, size: 16, font: boldFont });
 
       yPos -= 30;
-      page1.drawText("1. Executive Summary", {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      page1.drawText("We thank you for your interest in our Private Equity Proposal",
+        { x: leftMargin, y: yPos, size: 10, font });
 
+      // Executive Summary
+      yPos -= 30;
+      page1.drawText("1. Executive Summary", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 20;
-      // Executive summary with dynamic values
       const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
-      
-      // Word wrap for executive summary
-
-      // Function to sanitize text and remove Unicode characters that can't be encoded
-      const sanitizeText = (text: string) => {
-        return text
-          .replace(/➤/g, '•')
-          .replace(/🔘/g, '•')
-          .replace(/☑/g, '•')
-          .replace(/✓/g, '•')
-          .replace(/📞/g, 'Tel:')
-          .replace(/✉/g, 'Email:')
-          .replace(/🌐/g, 'Website:')
-          .replace(/[^\x00-\x7F]/g, ''); // Remove any remaining non-ASCII characters
-      };
-
-      const summaryLines = wrapText(executiveSummary, contentWidth - 40); // Full width content
-      summaryLines.forEach((line) => {
-        page1.drawText(sanitizeText(line), {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 14;
-      });
+      yPos = drawJustifiedText(page1, executiveSummary, leftMargin, yPos, contentWidth, font, 10);
 
       yPos -= 15;
-      page1.drawText("Key Highlights:", {
-        x: leftMargin,
-        y: yPos,
-        size: 12,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page1.drawText("Key Highlights:", { x: leftMargin, y: yPos, size: 12, font: boldFont });
       yPos -= 20;
+
       const highlights = [
         `• Target Return: ${proposal.targetReturn}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualised return).`,
         "• Investment Strategy: Focus on growth equity in high-potential sectors.",
@@ -392,100 +303,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       highlights.forEach((highlight) => {
-        const highlightLines = wrapText(highlight, contentWidth - 60); // Full width with bullet indent
-        highlightLines.forEach((line) => {
-          page1.drawText(sanitizeText(line), {
-            x: leftMargin + 20, // Indent for bullet points
-            y: yPos,
-            size: 10,
-            font,
-            color: rgb(0, 0, 0),
-          });
-          yPos -= 14;
-        });
+        yPos = drawJustifiedText(page1, highlight, leftMargin, yPos, contentWidth, font, 10);
         yPos -= 5;
       });
 
-      // Continue on page 1 with Investment Opportunity section
-      yPos -= 25;
-      page1.drawText("2. Investment Opportunity & Market Outlook", {
-        x: leftMargin,
-        y: yPos,
-        size: 12,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      // Market Outlook
+      yPos -= 20;
+      page1.drawText("2. Investment Opportunity & Market Outlook",
+        { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 20;
       const marketText = "Private equity has historically outperformed public markets, delivering 12-25%+ annual returns in emerging markets like South Africa and BRICS. Key sectors with strong growth potential include:";
-      const marketLines = wrapText(marketText, contentWidth - 40); // Full width
-      marketLines.forEach((line) => {
-        page1.drawText(line, {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 14;
-      });
+      yPos = drawJustifiedText(page1, marketText, leftMargin, yPos, contentWidth, font, 10);
 
-      yPos -= 8;
+      yPos -= 10;
       const sectors = [
         "Technology & FinTech (Digital payments, SaaS, AI Related business)",
         "Consumer Goods & Retail (E-commerce, premium brands, Rewards, Lifestyle products)",
-        "Healthcare & Biotechnology (Telemedicine, generics manufacturing)"
+        "Healthcare & Biotechnology (Telemedicine, generics manufacturing)",
+        "Renewable Energy (Solar, battery storage)"
       ];
 
       sectors.forEach((sector) => {
-        page1.drawText(sector, {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
+        page1.drawText(sector, { x: leftMargin, y: yPos, size: 10, font, color: rgb(0, 0, 0) });
         yPos -= 14;
       });
 
       yPos -= 10;
-      const renewableText = "Renewable Energy (Solar, battery storage)";
-      page1.drawText(renewableText, {
-        x: leftMargin,
-        y: yPos,
-        size: 10,
-        font,
-        color: rgb(0, 0, 0),
-      });
-
-      yPos -= 18;
       const investText = "By investing in early stage but undervalued businesses with strong cash flow, IP and scalability, we position the portfolio for accelerated growth.";
-      const investLines = wrapText(investText, contentWidth - 40); // Full width
-      investLines.forEach((line) => {
-        page1.drawText(line, {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 14;
-      });
+      yPos = drawJustifiedText(page1, investText, leftMargin, yPos, contentWidth, font, 10);
 
-      // PAGE 2 - Second content page
+      // PAGE 2 - Investment Structure
       const page2 = pdfDoc.addPage([595.28, 841.89]);
       addFooterToPage(page2);
-      yPos = 780; // Start from top
+      yPos = 780;
 
-      // Investment Structure section
-      page2.drawText("3. Proposed Investment Structure", {
-        x: leftMargin,
-        y: yPos,
-        size: 12,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page2.drawText("3. Proposed Investment Structure", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 25;
 
       // Investment Structure Table
@@ -499,75 +351,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ["Key Sectors", "FinTech, Lifestyle, Online Education"]
       ];
 
-      // Draw table borders
+      // Draw simple table
       const tableStartY = yPos;
-      const rowHeight = 18;
-      const col1Width = 120;
+      const rowHeight = 20;
+      const col1Width = 140;
       const col2Width = 300;
 
-      // Table border
-      page2.drawRectangle({
-        x: leftMargin,
-        y: tableStartY - (rowHeight * tableData.length),
-        width: col1Width + col2Width,
-        height: rowHeight * tableData.length,
-        borderColor: rgb(0, 0, 0),
-        borderWidth: 1,
-      });
-
-      // Column divider
-      page2.drawLine({
-        start: { x: 56 + col1Width, y: tableStartY },
-        end: { x: 56 + col1Width, y: tableStartY - (rowHeight * tableData.length) },
-        color: rgb(0, 0, 0),
-        thickness: 1,
-      });
-
-      // Row dividers and content
       tableData.forEach((row, index) => {
         const isHeader = index === 0;
-        const currentY = tableStartY - (index * rowHeight) - 12;
+        const currentY = tableStartY - (index * rowHeight);
         
-        // Row divider (except for last row)
-        if (index < tableData.length - 1) {
-          page2.drawLine({
-            start: { x: 56, y: tableStartY - ((index + 1) * rowHeight) },
-            end: { x: 56 + col1Width + col2Width, y: tableStartY - ((index + 1) * rowHeight) },
-            color: rgb(0, 0, 0),
-            thickness: 1,
-          });
-        }
+        // Draw table border
+        page2.drawRectangle({
+          x: leftMargin,
+          y: currentY - rowHeight + 5,
+          width: col1Width + col2Width,
+          height: rowHeight,
+          borderColor: rgb(0, 0, 0),
+          borderWidth: 1,
+        });
 
         // Content
         page2.drawText(row[0], {
-          x: 61,
-          y: currentY,
-          size: 9,
+          x: leftMargin + 5,
+          y: currentY - 12,
+          size: 10,
           font: isHeader ? boldFont : font,
           color: rgb(0, 0, 0),
         });
         
         page2.drawText(row[1], {
-          x: 61 + col1Width,
-          y: currentY,
-          size: 9,
+          x: leftMargin + col1Width + 5,
+          y: currentY - 12,
+          size: 10,
           font: isHeader ? boldFont : font,
           color: rgb(0, 0, 0),
         });
       });
 
-      yPos = tableStartY - (rowHeight * tableData.length) - 30;
+      yPos = tableStartY - (rowHeight * tableData.length) - 20;
 
       // Why Private Equity section
-      page2.drawText("Why Private Equity?", {
-        x: leftMargin,
-        y: yPos,
-        size: 10,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page2.drawText("Why Private Equity?", { x: leftMargin, y: yPos, size: 10, font: boldFont });
       yPos -= 15;
+
       const peReasons = [
         "• Higher Returns: PE typically outperforms stocks & bonds.",
         "• Active Value Creation: Hands-on management improves business performance.",
@@ -575,27 +402,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       peReasons.forEach((reason) => {
-        page2.drawText(reason, {
-          x: 66,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+        yPos = drawJustifiedText(page2, reason, leftMargin, yPos, contentWidth, font, 10);
+        yPos -= 5;
       });
 
       yPos -= 20;
 
       // Projected Returns & Cash Flow
-      page2.drawText("4. Projected Returns & Cash Flow", {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page2.drawText("4. Projected Returns & Cash Flow", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 25;
 
       // Cash Flow Table
@@ -607,64 +421,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ["Year 3", Math.floor(sharesIssued).toLocaleString(), proposal.year3Dividend.toFixed(3), `R${year3Return.toLocaleString()},00`, `${year3Growth.toFixed(2)}%`, `R${year3Value.toLocaleString()},00`]
       ];
 
-      // Cash flow table positions
+      // Draw cash flow table
       const colWidths = [40, 75, 75, 75, 60, 95];
-      const colPositions = [56];
-      for (let i = 1; i < colWidths.length; i++) {
-        colPositions.push(colPositions[i-1] + colWidths[i-1]);
-      }
-
-      const tableHeight = cashFlowData.length * 18;
       const tableTop = yPos;
-
-      // Table border
-      page2.drawRectangle({
-        x: leftMargin,
-        y: tableTop - tableHeight,
-        width: colWidths.reduce((a, b) => a + b, 0),
-        height: tableHeight,
-        borderColor: rgb(0, 0, 0),
-        borderWidth: 1,
-      });
-
-      // Column dividers
-      for (let i = 1; i < colPositions.length; i++) {
-        page2.drawLine({
-          start: { x: colPositions[i], y: tableTop },
-          end: { x: colPositions[i], y: tableTop - tableHeight },
-          color: rgb(0, 0, 0),
-          thickness: 1,
-        });
-      }
-
-      // Row data
+      
       cashFlowData.forEach((row, rowIndex) => {
         const isHeader = rowIndex === 0;
-        const currentY = tableTop - (rowIndex * 18) - 12;
+        const currentY = tableTop - (rowIndex * 18);
         
-        // Row divider
-        if (rowIndex < cashFlowData.length - 1) {
-          page2.drawLine({
-            start: { x: 56, y: tableTop - ((rowIndex + 1) * 18) },
-            end: { x: 56 + colWidths.reduce((a, b) => a + b, 0), y: tableTop - ((rowIndex + 1) * 18) },
-            color: rgb(0, 0, 0),
-            thickness: 1,
-          });
-        }
-
-        // Cell content
+        let xPos = leftMargin;
         row.forEach((cell, colIndex) => {
+          // Draw cell border
+          page2.drawRectangle({
+            x: xPos,
+            y: currentY - 18,
+            width: colWidths[colIndex],
+            height: 18,
+            borderColor: rgb(0, 0, 0),
+            borderWidth: 0.5,
+          });
+          
+          // Draw text
           page2.drawText(cell, {
-            x: colPositions[colIndex] + 3,
-            y: currentY,
+            x: xPos + 3,
+            y: currentY - 12,
             size: 8,
             font: isHeader ? boldFont : font,
             color: rgb(0, 0, 0),
           });
+          
+          xPos += colWidths[colIndex];
         });
       });
 
-      yPos = tableTop - tableHeight - 20;
+      yPos = tableTop - (18 * cashFlowData.length) - 20;
 
       // Notes
       const notes = [
@@ -674,40 +464,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       notes.forEach((note) => {
-        page2.drawText(note, {
-          x: 66,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 12;
+        yPos = drawJustifiedText(page2, note, leftMargin, yPos, contentWidth, font, 10);
+        yPos -= 5;
       });
 
-      // PAGE 3 - Third content page
+      // PAGE 3 - Risk & Conclusion
       const page3 = pdfDoc.addPage([595.28, 841.89]);
       addFooterToPage(page3);
-      yPos = 720; // Lower starting position to accommodate bigger logo
+      yPos = 780;
 
       // Risk Mitigation Strategy
-      page3.drawText("5. Risk Mitigation Strategy", {
-        x: leftMargin,
-        y: yPos,
-        size: 12,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page3.drawText("5. Risk Mitigation Strategy", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
-      page3.drawText("To safeguard capital while pursuing high returns, we implement:", {
-        x: leftMargin,
-        y: yPos,
-        size: 9,
-        font,
-        color: rgb(0, 0, 0),
-      });
+      
+      const riskIntro = "To safeguard capital while pursuing high returns, we implement:";
+      yPos = drawJustifiedText(page3, riskIntro, leftMargin, yPos, contentWidth, font, 10);
+      yPos -= 10;
 
-      yPos -= 20;
       const riskStrategies = [
         "• Diversification across 1-5 high-growth potential companies",
         "• Due Diligence on management teams, financials, and market trends",
@@ -716,58 +489,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       riskStrategies.forEach((strategy) => {
-        page3.drawText(strategy, {
-          x: 66,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+        yPos = drawJustifiedText(page3, strategy, leftMargin, yPos, contentWidth, font, 10);
+        yPos -= 5;
       });
 
       yPos -= 15;
 
       // Why Invest With Us section
-      page3.drawText("6. Why Invest With Us?", {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page3.drawText("6. Why Invest With Us?", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
-      const whyInvestItems = [
+
+      const whyUs = [
         "• Industry Expertise: Deep knowledge of South African & African markets",
         "• Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
         "• Aligned Interests: We invest alongside clients",
         "• Ownership: We take a large ownership and management stake in companies we invest in"
       ];
 
-      whyInvestItems.forEach((item) => {
-        page3.drawText(item, {
-          x: 66,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+      whyUs.forEach((point) => {
+        yPos = drawJustifiedText(page3, point, leftMargin, yPos, contentWidth, font, 10);
+        yPos -= 5;
       });
 
       yPos -= 20;
 
       // Next Steps
-      page3.drawText("7. Next Steps", {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
-
+      page3.drawText("7. Next Steps", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
+
       const nextSteps = [
         "1. Decision Taking: Deciding on risk appetite & capital to be invested",
         "2. Risk Process: Making investment and completing documentation",
@@ -776,215 +525,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       nextSteps.forEach((step) => {
-        page3.drawText(step, {
-          x: 66,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
+        yPos = drawJustifiedText(page3, step, leftMargin, yPos, contentWidth, font, 10);
+        yPos -= 5;
       });
 
       yPos -= 20;
 
       // Conclusion
-      page3.drawText("8. Conclusion", {
-        x: leftMargin,
-        y: yPos,
-        size: 11,
-        font: boldFont,
-        color: rgb(0, 0, 0),
-      });
+      page3.drawText("8. Conclusion", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      yPos -= 15;
+
+      const conclusion = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${proposal.targetReturn}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
+      yPos = drawJustifiedText(page3, conclusion, leftMargin, yPos, contentWidth, font, 10);
 
       yPos -= 15;
-      // Ensure we don't go too low to avoid footer overlap
-      if (yPos < 80) yPos = 80; // Ensure content stays above footer
-      const conclusionText = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${proposal.targetReturn}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
-      const conclusionLines = wrapText(conclusionText, 480);
-      conclusionLines.forEach((line) => {
-        if (yPos > 70) { // Only draw if there's room above footer (footer at y=20+30=50)
-          page3.drawText(line, {
-            x: leftMargin,
-            y: yPos,
-            size: 9,
-            font,
-            color: rgb(0, 0, 0),
-          });
-          yPos -= 12;
-        }
-      });
+      const thankYou = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
+      yPos = drawJustifiedText(page3, thankYou, leftMargin, yPos, contentWidth, font, 10);
 
-      yPos -= 15;
-      // Ensure we don't go too low before thank you section
-      if (yPos < 80) yPos = 80; // Ensure content stays above footer
-      const thankYouText = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
-      const thankYouLines = wrapText(thankYouText, 480);
-      thankYouLines.forEach((line) => {
-        if (yPos > 70) { // Only draw if there's room above footer (footer at y=20+30=50)
-          page3.drawText(line, {
-            x: leftMargin,
-            y: yPos,
-            size: 9,
-            font,
-            color: rgb(0, 0, 0),
-          });
-          yPos -= 12;
-        }
-      });
-
+      yPos -= 25;
+      page3.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 20;
 
-      // Kind Regards - only draw if there's room
-      if (yPos > 70) {
-        page3.drawText("Kind Regards", {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-      }
-
-      yPos -= 20;
-
-      // Add signature image - only if there's room above footer
-      if (signatureImage && yPos > 130) {
-        const signatureWidth = 120;
-        const signatureHeight = 60;
-        
+      // Add signature image if available
+      if (signatureImage) {
         page3.drawImage(signatureImage, {
           x: leftMargin,
-          y: yPos - signatureHeight,
-          width: signatureWidth,
-          height: signatureHeight,
+          y: yPos - 60,
+          width: 120,
+          height: 40,
         });
-        
-        yPos -= signatureHeight + 10;
-      } else if (yPos > 90) {
-        yPos -= 40; // Space for signature if image fails to load
+        yPos -= 70;
       }
 
-      // CEO signature - only draw if there's room
-      if (yPos > 70) {
-        page3.drawText("Lance E Heynes", {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font: boldFont,
-          color: rgb(0, 0, 0),
-        });
-      }
-
-      // CEO title - only draw if there's room
+      page3.drawText("Lance E Heynes", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
-      if (yPos > 70) {
-        page3.drawText("CEO", {
-          x: leftMargin,
-          y: yPos,
-          size: 10,
-          font,
-          color: rgb(0, 0, 0),
-        });
-      }
+      page3.drawText("CEO", { x: leftMargin, y: yPos, size: 10, font });
+      yPos -= 15;
+      page3.drawText("Tel: 081 323 4297", { x: leftMargin, y: yPos, size: 10, font });
+      yPos -= 12;
+      page3.drawText("Email: lance@opianfsgroup.com", { x: leftMargin, y: yPos, size: 10, font });
+      yPos -= 12;
+      page3.drawText("Website: www.opiancapital.com", { x: leftMargin, y: yPos, size: 10, font });
 
-      yPos -= 30;
+      yPos -= 25;
+      const disclaimer = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before making investment decisions.*";
+      yPos = drawJustifiedText(page3, disclaimer, leftMargin, yPos, contentWidth, font, 8);
 
-      // Contact information - only draw if there's room
-      if (yPos > 70) {
-        page3.drawText("Tel: 081 323 4297", {
-          x: leftMargin,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
-      }
-      
-      if (yPos > 70) {
-        page3.drawText("Email: lance@opianfsgroup.com", {
-          x: leftMargin,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-        yPos -= 15;
-      }
-      
-      if (yPos > 70) {
-        page3.drawText("Website: www.opiancapital.com", {
-          x: leftMargin,
-          y: yPos,
-          size: 9,
-          font,
-          color: rgb(0, 0, 0),
-        });
-      }
-
-      yPos -= 30;
-
-      // Disclaimer
-      const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before making investment decisions.*";
-      const disclaimerLines = wrapText(disclaimerText, 480);
-      disclaimerLines.forEach((line) => {
-        page3.drawText(line, {
-          x: leftMargin,
-          y: yPos,
-          size: 8,
-          font,
-          color: rgb(0.4, 0.4, 0.4),
-        });
-        yPos -= 10;
-      });
-
-      // Footer on all content pages
-      const footerY = 20; // Footer positioned 20px from bottom as requested
-      const footerText = "Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974\nCompany Registration Number: 2022/272376/07 FSP No: 50974\nCompany Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape\nTel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com";
-      
-      [page1, page2, page3].forEach((page) => {
-        page.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974", {
-          x: 165,
-          y: footerY + 30,
-          size: 7,
-          font,
-          color: rgb(0.4, 0.4, 0.4),
-        });
-        
-        page.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974", {
-          x: 165,
-          y: footerY + 20,
-          size: 7,
-          font,
-          color: rgb(0.4, 0.4, 0.4),
-        });
-        
-        page.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape", {
-          x: 165,
-          y: footerY + 10,
-          size: 7,
-          font,
-          color: rgb(0.4, 0.4, 0.4),
-        });
-        
-        page.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com", {
-          x: 165,
-          y: footerY,
-          size: 7,
-          font,
-          color: rgb(0.4, 0.4, 0.4),
-        });
-      });
-
+      // Save & send
       const pdfBytes = await pdfDoc.save();
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="proposal-${proposal.clientName.replace(/\s+/g, '-')}.pdf"`);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition",
+        `attachment; filename="proposal-${proposal.clientName.replace(/\\s+/g, "-")}.pdf"`);
       res.send(Buffer.from(pdfBytes));
     } catch (error) {
       console.error("PDF generation error:", error);
-      res.status(500).json({ error: "Failed to generate PDF", details: error instanceof Error ? error.message : String(error) });
+      res.status(500).json({
+        error: "Failed to generate PDF",
+        details: error instanceof Error ? error.message : String(error),
+      });
     }
   });
 

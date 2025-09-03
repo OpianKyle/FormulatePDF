@@ -1,0 +1,241 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { insertProposalSchema } from "@shared/schema";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // Get all proposals
+  app.get("/api/proposals", async (_req, res) => {
+    try {
+      const proposals = await storage.getAllProposals();
+      res.json(proposals);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch proposals" });
+    }
+  });
+
+  // Create new proposal
+  app.post("/api/proposals", async (req, res) => {
+    try {
+      const validatedData = insertProposalSchema.parse(req.body);
+      const proposal = await storage.createProposal(validatedData);
+      res.json(proposal);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid proposal data" });
+    }
+  });
+
+  // Generate PDF from proposal
+  app.post("/api/proposals/:id/pdf", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const proposal = await storage.getProposal(id);
+
+      if (!proposal) {
+        return res.status(404).json({ error: "Proposal not found" });
+      }
+
+      // Create PDF document
+      const pdfDoc = await PDFDocument.create();
+
+      // Calculate investment projections
+      const sharesIssued = proposal.investmentAmount / 8; // Assuming R8 per share
+      const year1Return = sharesIssued * proposal.year1Dividend;
+      const year2Return = sharesIssued * proposal.year2Dividend;
+      const year3Return = sharesIssued * proposal.year3Dividend;
+
+      const year1Value = proposal.investmentAmount + year1Return;
+      const year2Value = year1Value + year2Return;
+      const year3Value = year2Value + year3Return;
+
+      const year1Growth = (year1Return / proposal.investmentAmount) * 100;
+      const year2Growth = (year2Return / year1Value) * 100;
+      const year3Growth = (year3Return / year2Value) * 100;
+
+      const targetValue =
+        proposal.investmentAmount * (1 + proposal.targetReturn / 100);
+      const totalProfit = targetValue - proposal.investmentAmount;
+      const annualizedReturn =
+        Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
+
+      // Load and embed images
+      let coverImage, logoImage: any, signatureImage;
+      try {
+        const imagePath = path.join(
+          __dirname,
+          "../attached_assets/image_1756730534595.png"
+        );
+        const imageBytes = await fs.readFile(imagePath);
+        coverImage = await pdfDoc.embedPng(imageBytes);
+      } catch (error) {
+        console.warn("Could not load cover image, using text-only cover page");
+      }
+
+      try {
+        const logoPath = path.join(
+          __dirname,
+          "../attached_assets/image_1756732571502.png"
+        );
+        const logoBytes = await fs.readFile(logoPath);
+        logoImage = await pdfDoc.embedPng(logoBytes);
+      } catch (error) {
+        console.warn("Could not load logo image");
+      }
+
+      try {
+        const signaturePath = path.join(
+          __dirname,
+          "../attached_assets/image_1756732618787.png"
+        );
+        const signatureBytes = await fs.readFile(signaturePath);
+        signatureImage = await pdfDoc.embedPng(signatureBytes);
+      } catch (error) {
+        console.warn("Could not load signature image");
+      }
+
+      // Fonts
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      // ✅ Helper: Draw fully justified text
+      const drawJustifiedText = (
+        page: any,
+        text: string,
+        x: number,
+        y: number,
+        maxWidth: number,
+        font: any,
+        fontSize: number = 10,
+        lineSpacing: number = 14
+      ) => {
+        const words = text.split(" ");
+        let lines: string[][] = [];
+        let currentLine: string[] = [];
+
+        words.forEach((word) => {
+          const testLine = [...currentLine, word];
+          const textWidth = font.widthOfTextAtSize(testLine.join(" "), fontSize);
+          if (textWidth > maxWidth && currentLine.length > 0) {
+            lines.push(currentLine);
+            currentLine = [word];
+          } else {
+            currentLine = testLine;
+          }
+        });
+        if (currentLine.length > 0) lines.push(currentLine);
+
+        lines.forEach((lineWords, i) => {
+          const lineText = lineWords.join(" ");
+          const lineWidth = font.widthOfTextAtSize(lineText, fontSize);
+
+          if (i === lines.length - 1 || lineWords.length === 1) {
+            page.drawText(lineText, { x, y, size: fontSize, font, color: rgb(0, 0, 0) });
+          } else {
+            const extraSpace = (maxWidth - lineWidth) / (lineWords.length - 1);
+            let cursorX = x;
+            lineWords.forEach((word) => {
+              page.drawText(word, { x: cursorX, y, size: fontSize, font, color: rgb(0, 0, 0) });
+              cursorX += font.widthOfTextAtSize(word, fontSize) + extraSpace;
+            });
+          }
+          y -= lineSpacing;
+        });
+
+        return y;
+      };
+
+      // Footer
+      const addFooterToPage = (page: any) => {
+        const footerY = 40;
+        const leftMargin = 40;
+        page.drawText("Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974",
+          { x: leftMargin, y: footerY + 30, size: 8, font, color: rgb(0, 0, 0) });
+        page.drawText("Company Registration Number: 2022/272376/07 FSP No: 50974",
+          { x: leftMargin, y: footerY + 20, size: 8, font, color: rgb(0, 0, 0) });
+        page.drawText("Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape",
+          { x: leftMargin, y: footerY + 10, size: 8, font, color: rgb(0, 0, 0) });
+        page.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com",
+          { x: leftMargin, y: footerY, size: 8, font, color: rgb(0, 0, 0) });
+      };
+
+      // PAGE 1
+      const page1 = pdfDoc.addPage([595.28, 841.89]);
+      addFooterToPage(page1);
+      let yPos = 780;
+      const leftMargin = 40;
+      const contentWidth = 595.28 - 80;
+
+      // Title
+      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
+      page1.drawText(titleText, { x: leftMargin, y: yPos, size: 14, font: boldFont });
+
+      yPos -= 25;
+      page1.drawText(`Prepared for: ${proposal.clientName}`, { x: leftMargin, y: yPos, size: 11, font: boldFont });
+
+      yPos -= 20;
+      page1.drawText(`Date: ${proposal.proposalDate}`, { x: leftMargin, y: yPos, size: 11, font: boldFont });
+
+      yPos -= 25;
+      page1.drawText("Address:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      yPos -= 15;
+      proposal.clientAddress.split("\n").forEach((line) => {
+        page1.drawText(line, { x: leftMargin, y: yPos, size: 10, font });
+        yPos -= 15;
+      });
+
+      yPos -= 50;
+      page1.drawText(`Dear ${proposal.clientName}`, { x: leftMargin, y: yPos, size: 16, font: boldFont });
+
+      yPos -= 30;
+      page1.drawText("We thank you for your interest in our Private Equity Proposal",
+        { x: leftMargin, y: yPos, size: 10, font });
+
+      // Executive Summary
+      yPos -= 30;
+      page1.drawText("1. Executive Summary", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      yPos -= 20;
+      const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
+      yPos = drawJustifiedText(page1, executiveSummary, leftMargin, yPos, contentWidth, font, 10);
+
+      // Market Outlook
+      yPos -= 20;
+      page1.drawText("2. Investment Opportunity & Market Outlook",
+        { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      yPos -= 20;
+      const marketText = "Private equity has historically outperformed public markets ... (your text here)";
+      yPos = drawJustifiedText(page1, marketText, leftMargin, yPos, contentWidth, font, 10);
+
+      // Investment Structure
+      yPos -= 20;
+      page1.drawText("3. Proposed Investment Structure", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      yPos -= 20;
+      const investText = "By investing in early stage but undervalued businesses with strong cash flow ... (your text here)";
+      yPos = drawJustifiedText(page1, investText, leftMargin, yPos, contentWidth, font, 10);
+
+      // ... PAGE 2 with projections & PAGE 3 with Conclusion, Thank You, Disclaimer also use drawJustifiedText
+
+      // Save & send
+      const pdfBytes = await pdfDoc.save();
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition",
+        `attachment; filename="proposal-${proposal.clientName.replace(/\s+/g, "-")}.pdf"`);
+      res.send(Buffer.from(pdfBytes));
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      res.status(500).json({
+        error: "Failed to generate PDF",
+        details: error instanceof Error ? error.message : String(error),
+      });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
