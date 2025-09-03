@@ -4,6 +4,7 @@ export interface InvestmentCalculations {
   targetValue: number;
   totalProfit: number;
   annualizedReturn: number;
+  calculatedTargetReturn: number;
   sharesIssued: number;
   year1Return: number;
   year1Value: number;
@@ -43,12 +44,14 @@ export function calculateInvestmentProjections(formData: Partial<ProposalForm>):
   // Calculate target value based on dividend projections (final year value)
   const targetValue = year3Value;
   const totalProfit = targetValue - investmentAmount;
+  const calculatedTargetReturn = investmentAmount > 0 ? ((targetValue - investmentAmount) / investmentAmount) * 100 : 0;
   const annualizedReturn = investmentAmount > 0 ? (Math.pow(targetValue / investmentAmount, 1 / timeHorizon) - 1) * 100 : 0;
 
   return {
     targetValue,
     totalProfit,
     annualizedReturn,
+    calculatedTargetReturn,
     sharesIssued,
     year1Return,
     year1Value,

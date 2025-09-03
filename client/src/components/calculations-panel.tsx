@@ -31,11 +31,17 @@ export default function CalculationsPanel({ formData, lastGenerated }: Calculati
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="bg-muted p-4 rounded-lg">
               <div className="text-sm text-muted-foreground">Total Profit</div>
               <div className="text-lg font-semibold text-accent" data-testid="text-total-profit">
                 R {calculations.totalProfit.toLocaleString()}
+              </div>
+            </div>
+            <div className="bg-muted p-4 rounded-lg">
+              <div className="text-sm text-muted-foreground">Target Return</div>
+              <div className="text-lg font-semibold text-accent" data-testid="text-calculated-target-return">
+                {calculations.calculatedTargetReturn.toFixed(1)}%
               </div>
             </div>
             <div className="bg-muted p-4 rounded-lg">
