@@ -24,15 +24,10 @@ export function calculateInvestmentProjections(formData: Partial<ProposalForm>):
   const year2Dividend = formData.year2Dividend || 0;
   const year3Dividend = formData.year3Dividend || 0;
 
-  // Calculate target value based on return percentage
-  const targetValue = investmentAmount * (1 + targetReturn / 100);
-  const totalProfit = targetValue - investmentAmount;
-  const annualizedReturn = investmentAmount > 0 ? (Math.pow(targetValue / investmentAmount, 1 / timeHorizon) - 1) * 100 : 0;
-
   // Calculate shares issued (assuming R8 per share based on original data)
   const sharesIssued = investmentAmount / 8;
 
-  // Calculate yearly returns
+  // Calculate yearly returns based on dividend allocations
   const year1Return = sharesIssued * year1Dividend;
   const year1Value = investmentAmount + year1Return;
   const year1Growth = investmentAmount > 0 ? (year1Return / investmentAmount) * 100 : 0;
@@ -44,6 +39,11 @@ export function calculateInvestmentProjections(formData: Partial<ProposalForm>):
   const year3Return = sharesIssued * year3Dividend;
   const year3Value = year2Value + year3Return;
   const year3Growth = year2Value > 0 ? (year3Return / year2Value) * 100 : 0;
+
+  // Calculate target value based on dividend projections (final year value)
+  const targetValue = year3Value;
+  const totalProfit = targetValue - investmentAmount;
+  const annualizedReturn = investmentAmount > 0 ? (Math.pow(targetValue / investmentAmount, 1 / timeHorizon) - 1) * 100 : 0;
 
   return {
     targetValue,
