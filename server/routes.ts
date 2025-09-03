@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Load and embed the logo for content pages
-      let logoImage;
+      let logoImage: any = null;
       try {
         const logoPath = path.join(__dirname, '../attached_assets/image_1756732571502.png');
         const logoBytes = await fs.readFile(logoPath);
