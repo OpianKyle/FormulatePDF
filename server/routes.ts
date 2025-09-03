@@ -59,8 +59,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const year2Growth = (year2Return / year1Value) * 100;
       const year3Growth = (year3Return / year2Value) * 100;
 
-      const targetValue =
-        proposal.investmentAmount * (1 + proposal.targetReturn / 100);
+      // Calculate target return percentage based on dividend projections
+      const targetValue = year3Value; // Use final year value from dividends
+      const calculatedTargetReturn = ((targetValue - proposal.investmentAmount) / proposal.investmentAmount) * 100;
       const totalProfit = targetValue - proposal.investmentAmount;
       const annualizedReturn =
         Math.pow(targetValue / proposal.investmentAmount, 1 / proposal.timeHorizon) - 1;
@@ -279,7 +280,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contentWidth = 595.28 - 80;
 
       // Title
-      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
+      const titleText = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${calculatedTargetReturn.toFixed(0)}% Growth) in ${proposal.timeHorizon} Years`;
       page1.drawText(titleText, { x: leftMargin, y: yPos, size: 14, font: boldFont });
 
       yPos -= 25;
@@ -307,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
       page1.drawText("1. Executive Summary", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 20;
-      const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
+      const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${calculatedTargetReturn.toFixed(0)}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
       yPos = drawJustifiedText(page1, executiveSummary, leftMargin, yPos, contentWidth, font, 10);
 
       yPos -= 15;
@@ -315,7 +316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 20;
 
       const highlights = [
-        `• Target Return: ${proposal.targetReturn}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualised return).`,
+        `• Target Return: ${calculatedTargetReturn.toFixed(0)}% growth (R${totalProfit.toLocaleString()} profit) in ${proposal.timeHorizon} years (~${(annualizedReturn * 100).toFixed(1)}% annualised return).`,
         "• Investment Strategy: Focus on growth equity in high-potential sectors.",
         "• Risk Management: Portfolio diversification, and active management.",
         `• Exit Strategy: Share buybacks, IPOs, or secondary buyouts after ${proposal.timeHorizon} years.`
@@ -364,7 +365,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tableData = [
         ["Component", "Details"],
         ["Investment Amount", `R${proposal.investmentAmount.toLocaleString()},00`],
-        ["Target Return", `R${targetValue.toLocaleString()},00 (${proposal.targetReturn}% growth)`],
+        ["Target Return", `R${targetValue.toLocaleString()},00 (${calculatedTargetReturn.toFixed(0)}% growth)`],
         ["Time Horizon", `${proposal.timeHorizon} years`],
         ["Annualised Return", `~${(annualizedReturn * 100).toFixed(0)}%`],
         ["Investment Vehicle", "Private Equity / Direct Investment"],
@@ -556,7 +557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       page3.drawText("8. Conclusion", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 15;
 
-      const conclusion = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${proposal.targetReturn}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
+      const conclusion = `This private equity strategy offers a compelling opportunity to grow R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} in ${proposal.timeHorizon} years (${calculatedTargetReturn.toFixed(0)}% return) by leveraging high-growth, private-held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.`;
       yPos = drawJustifiedText(page3, conclusion, leftMargin, yPos, contentWidth, font, 10);
 
       yPos -= 15;
