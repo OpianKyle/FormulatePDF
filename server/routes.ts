@@ -81,7 +81,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const logoPath = path.join(
           __dirname,
-          "../attached_assets/image_1756732571502.png"
+          "../attached_assets/image_1756901569236.png"
         );
         const logoBytes = await fs.readFile(logoPath);
         logoImage = await pdfDoc.embedPng(logoBytes);
@@ -163,6 +163,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { x: leftMargin, y: footerY + 10, size: 8, font, color: rgb(0, 0, 0) });
         page.drawText("Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com",
           { x: leftMargin, y: footerY, size: 8, font, color: rgb(0, 0, 0) });
+      };
+
+      // Add logo to top right of content pages
+      const addLogoToPage = (page: any) => {
+        if (logoImage) {
+          const logoWidth = 120;
+          const logoHeight = 40;
+          const pageWidth = 595.28;
+          const x = pageWidth - logoWidth - 40; // 40px margin from right edge
+          const y = 800; // Top of page with margin
+          
+          page.drawImage(logoImage, {
+            x: x,
+            y: y,
+            width: logoWidth,
+            height: logoHeight,
+          });
+        }
       };
 
       // Create cover page
@@ -255,6 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 1
       const page1 = pdfDoc.addPage([595.28, 841.89]);
       addFooterToPage(page1);
+      addLogoToPage(page1);
       let yPos = 780;
       const leftMargin = 40;
       const contentWidth = 595.28 - 80;
@@ -277,7 +296,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 15;
       });
 
-      yPos -= 50;
+      yPos -= 80;
       page1.drawText(`Dear ${proposal.clientName}`, { x: leftMargin, y: yPos, size: 16, font: boldFont });
 
       yPos -= 30;
@@ -335,6 +354,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 2 - Investment Structure
       const page2 = pdfDoc.addPage([595.28, 841.89]);
       addFooterToPage(page2);
+      addLogoToPage(page2);
       yPos = 780;
 
       page2.drawText("3. Proposed Investment Structure", { x: leftMargin, y: yPos, size: 11, font: boldFont });
@@ -471,6 +491,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // PAGE 3 - Risk & Conclusion
       const page3 = pdfDoc.addPage([595.28, 841.89]);
       addFooterToPage(page3);
+      addLogoToPage(page3);
       yPos = 780;
 
       // Risk Mitigation Strategy
