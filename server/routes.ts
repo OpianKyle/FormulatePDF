@@ -61,6 +61,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("Could not load logo image:", error);
       }
 
+      // Load cover page background image
+      let coverBackgroundImage: any = null;
+      try {
+        const backgroundPath = path.join(__dirname, "../attached_assets/image_1756985415884.png");
+        const backgroundBytes = await fs.readFile(backgroundPath);
+        coverBackgroundImage = await pdfDoc.embedPng(backgroundBytes);
+      } catch (error) {
+        console.warn("Could not load cover background image:", error);
+      }
+
       // === Helper Functions ===
       const drawJustifiedText = (
         page: any,
@@ -162,40 +172,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // === COVER PAGE ===
       const coverPage = pdfDoc.addPage([595.28, 841.89]);
-      let yPos = 780;
-
-      // Cover page header - top left
-      coverPage.drawText("OFFER LETTER", { 
-        x: leftMargin, 
-        y: yPos, 
-        size: 14, 
-        font: boldFont 
-      });
-
-      yPos -= 300; // Large spacing to center content
-
-      // Center the main title
-      const mainTitle = "PRIVATE EQUITY PROPOSAL";
-      const titleWidth = boldFont.widthOfTextAtSize(mainTitle, 24);
-      const titleX = (pageWidth - titleWidth) / 2;
-      coverPage.drawText(mainTitle, { 
-        x: titleX, 
-        y: yPos, 
-        size: 24, 
-        font: boldFont 
-      });
-
-      yPos -= 80;
-
-      // Subtitle - centered
-      const subtitle = "Private Equity Proposal – CAPITAL GROWTH";
-      const subtitleWidth = font.widthOfTextAtSize(subtitle, 16);
-      const subtitleX = (pageWidth - subtitleWidth) / 2;
-      coverPage.drawText(subtitle, { 
-        x: subtitleX, 
-        y: yPos, 
-        size: 16, 
-        font: boldFont 
+      
+      // Add background image on the right side
+      if (coverBackgroundImage) {
+        // Position background image to cover right portion of the page
+        const bgWidth = 300; // Half page width
+        const bgHeight = 841.89; // Full page height
+        const bgX = pageWidth - bgWidth; // Right side
+        const bgY = 0; // Bottom aligned
+        
+        coverPage.drawImage(coverBackgroundImage, {
+          x: bgX,
+          y: bgY,
+          width: bgWidth,
+          height: bgHeight
+        });
+      }
+      
+      // Add logo on the left side - larger for cover
+      if (logoImage) {
+        const logoWidth = 200;
+        const logoHeight = 58;
+        const logoX = 60;
+        const logoY = 600;
+        
+        coverPage.drawImage(logoImage, {
+          x: logoX,
+          y: logoY,
+          width: logoWidth,
+          height: logoHeight
+        });
+      }
+      
+      // Add "PRIVATE EQUITY PROPOSAL" text below logo
+      const coverTitle = "PRIVATE EQUITY PROPOSAL";
+      coverPage.drawText(coverTitle, { 
+        x: 60, 
+        y: 520, 
+        size: 22, 
+        font: boldFont,
+        color: rgb(0, 0, 0)
       });
 
       // === PAGE 1: MAIN CONTENT ===
