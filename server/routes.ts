@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const logoWidth = 150;
           const logoHeight = 45;
           const x = pageWidth - logoWidth - rightMargin;
-          const y = 795;
+          const y = 826;
           
           page.drawImage(logoImage, {
             x,
@@ -399,22 +399,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 20;
       });
 
-      // === PAGE 4: RISK & WHY US (MOVED UP) ===
+      // === PAGE 4: PROJECTED RETURNS ===
       const page4 = pdfDoc.addPage([595.28, 841.89]);
       addFooter(page4);
       addLogo(page4);
       yPos = 750;
 
-
-
-      // === PAGE 5: PROJECTED RETURNS ===
-      const page5 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page5);
-      addLogo(page5);
-      yPos = 750;
-
       // Projected Returns & Cash Flow
-      page5.drawText("Projected Returns & Cash Flow", { 
+      page4.drawText("Projected Returns & Cash Flow", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -442,7 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         let xPos = leftMargin;
         row.forEach((cell, colIndex) => {
           // Draw cell border
-          page5.drawRectangle({
+          page4.drawRectangle({
             x: xPos,
             y: currentY - 25,
             width: colWidths[colIndex],
@@ -452,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           // Draw text
-          page5.drawText(cell, {
+          page4.drawText(cell, {
             x: xPos + 4,
             y: currentY - 15,
             size: 9,
@@ -473,14 +465,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       notes.forEach(note => {
-        page5.drawText(note, { x: leftMargin, y: yPos, size: 11, font });
+        page4.drawText(note, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
       yPos -= 40;
 
       // Risk Mitigation Strategy
-      page5.drawText("Risk Mitigation Strategy", { 
+      page4.drawText("Risk Mitigation Strategy", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -489,7 +481,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       const riskIntro = "To safeguard capital while pursuing high returns, we implement:";
-      yPos = drawJustifiedText(page5, riskIntro, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page4, riskIntro, leftMargin, yPos, contentWidth, font, 11);
       yPos -= 25;
 
       const riskStrategies = [
@@ -500,14 +492,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       riskStrategies.forEach(strategy => {
-        page5.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
+        page4.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
       yPos -= 30;
 
       // Why Invest With Us
-      page5.drawText("Why Invest With Us?", { 
+      page4.drawText("Why Invest With Us?", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -523,18 +515,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       whyUsPoints.forEach(point => {
-        page5.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
+        page4.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
-      // === PAGE 6: NEXT STEPS ===
-      const page6 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page6);
-      addLogo(page6);
+      // === PAGE 5: NEXT STEPS ===
+      const page5 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page5);
+      addLogo(page5);
       yPos = 750;
 
       // Next Steps
-      page6.drawText("Next Steps", { 
+      page5.drawText("Next Steps", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -550,14 +542,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       nextSteps.forEach(step => {
-        yPos = drawJustifiedText(page6, step, leftMargin, yPos, contentWidth, font, 11);
+        yPos = drawJustifiedText(page5, step, leftMargin, yPos, contentWidth, font, 11);
         yPos -= 15;
       });
 
       yPos -= 30;
 
       // Conclusion
-      page6.drawText("Conclusion", { 
+      page5.drawText("Conclusion", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -566,37 +558,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       const conclusion = "This private equity strategy offers a compelling opportunity for superior growth on your investment by leveraging equity in high-growth, privately held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.";
-      yPos = drawJustifiedText(page6, conclusion, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page5, conclusion, leftMargin, yPos, contentWidth, font, 11);
 
       yPos -= 25;
 
       const thankYou = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
-      yPos = drawJustifiedText(page6, thankYou, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page5, thankYou, leftMargin, yPos, contentWidth, font, 11);
 
       yPos -= 40;
-      page6.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      page5.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
 
       yPos -= 60;
 
       // Disclaimer - separated with proper spacing
       const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
-      yPos = drawJustifiedText(page6, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
+      yPos = drawJustifiedText(page5, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
 
       yPos -= 25;
 
       const proposalText = "*This proposal, when signed and accepted, will become part of the Agreement with the client";
-      yPos = drawJustifiedText(page6, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
+      yPos = drawJustifiedText(page5, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
 
-      // === PAGE 7: CLIENT CONFIRMATION ===
-      const page7 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page7);
-      addLogo(page7);
-      yPos = 750;
-
+      // === PAGE 6: CLIENT CONFIRMATION ===
+      const page6 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page6);
+      addLogo(page6);
       yPos = 750;
 
       // CLIENT CONFIRMATION
-      page7.drawText("CLIENT CONFIRMATION", { 
+      page6.drawText("CLIENT CONFIRMATION", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -605,12 +595,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       const confirmationText = "I, The undersigned, hereby accept the proposal as outlined in the documentation contained herein. I confirmed that I had made an informed decision based on my own financial product experience and/or external consultation with professionals. I confirm that I have the financial capacity to enter into this agreement and also the additional financial resources which allow me the opportunity to enter the waiting periods/ lock up periods/ and or risk associated with this product";
-      yPos = drawJustifiedText(page7, confirmationText, leftMargin, yPos, contentWidth, font, 10, 16);
+      yPos = drawJustifiedText(page6, confirmationText, leftMargin, yPos, contentWidth, font, 10, 16);
 
       yPos -= 50;
 
       // Signature fields with proper spacing
-      page7.drawText(`Signed at _________________ on _______ 202_`, { 
+      page6.drawText(`Signed at _________________ on _______ 202_`, { 
         x: leftMargin, 
         y: yPos, 
         size: 10, 
@@ -618,7 +608,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       yPos -= 40;
 
-      page7.drawText("Signature of Client: _________________________", { 
+      page6.drawText("Signature of Client: _________________________", { 
         x: leftMargin, 
         y: yPos, 
         size: 10, 
@@ -626,7 +616,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       yPos -= 30;
 
-      page7.drawText("Name of Client: _____________________________", { 
+      page6.drawText("Name of Client: _____________________________", { 
         x: leftMargin, 
         y: yPos, 
         size: 10, 
@@ -634,7 +624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       yPos -= 30;
 
-      page7.drawText("Date Signed: ________________________________", { 
+      page6.drawText("Date Signed: ________________________________", { 
         x: leftMargin, 
         y: yPos, 
         size: 10, 
