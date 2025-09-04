@@ -554,14 +554,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 15;
       });
 
-      // === PAGE 7: CONCLUSION & CLIENT CONFIRMATION ===
-      const page7 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page7);
-      addLogo(page7);
-      yPos = 750;
+      yPos -= 30;
 
       // Conclusion
-      page7.drawText("Conclusion", { 
+      page6.drawText("Conclusion", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -570,28 +566,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       const conclusion = "This private equity strategy offers a compelling opportunity for superior growth on your investment by leveraging equity in high-growth, privately held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.";
-      yPos = drawJustifiedText(page7, conclusion, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page6, conclusion, leftMargin, yPos, contentWidth, font, 11);
 
       yPos -= 25;
 
       const thankYou = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
-      yPos = drawJustifiedText(page7, thankYou, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page6, thankYou, leftMargin, yPos, contentWidth, font, 11);
 
       yPos -= 40;
-      page7.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      page6.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
 
-      yPos -= 80;
+      yPos -= 60;
 
       // Disclaimer - separated with proper spacing
       const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
-      yPos = drawJustifiedText(page7, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
+      yPos = drawJustifiedText(page6, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
 
       yPos -= 25;
 
       const proposalText = "*This proposal, when signed and accepted, will become part of the Agreement with the client";
-      yPos = drawJustifiedText(page7, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
+      yPos = drawJustifiedText(page6, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
 
-      yPos -= 40;
+      // === PAGE 7: CLIENT CONFIRMATION ===
+      const page7 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page7);
+      addLogo(page7);
+      yPos = 750;
+
+      yPos = 750;
 
       // CLIENT CONFIRMATION
       page7.drawText("CLIENT CONFIRMATION", { 
