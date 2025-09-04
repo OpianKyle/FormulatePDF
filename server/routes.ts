@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const logoWidth = 150;
           const logoHeight = 45;
           const x = pageWidth - logoWidth - rightMargin;
-          const y = 750;
+          const y = 795;
           
           page.drawImage(logoImage, {
             x,
