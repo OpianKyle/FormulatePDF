@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const logoWidth = 150;
           const logoHeight = 45;
           const x = pageWidth - logoWidth - rightMargin;
-          const y = 800;
+          const y = 750;
           
           page.drawImage(logoImage, {
             x,
@@ -479,14 +479,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 40;
 
-      // === PAGE 6: RISK MITIGATION & WHY INVEST WITH US ===
-      const page6 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page6);
-      addLogo(page6);
-      yPos = 750;
-
       // Risk Mitigation Strategy
-      page6.drawText("Risk Mitigation Strategy", { 
+      page5.drawText("Risk Mitigation Strategy", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -495,7 +489,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       const riskIntro = "To safeguard capital while pursuing high returns, we implement:";
-      yPos = drawJustifiedText(page6, riskIntro, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page5, riskIntro, leftMargin, yPos, contentWidth, font, 11);
       yPos -= 25;
 
       const riskStrategies = [
@@ -506,14 +500,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       riskStrategies.forEach(strategy => {
-        page6.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
+        page5.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
-      yPos -= 40;
+      yPos -= 30;
 
       // Why Invest With Us
-      page6.drawText("Why Invest With Us?", { 
+      page5.drawText("Why Invest With Us?", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -529,11 +523,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       whyUsPoints.forEach(point => {
-        page6.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
+        page5.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
-      yPos -= 40;
+      // === PAGE 6: NEXT STEPS ===
+      const page6 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page6);
+      addLogo(page6);
+      yPos = 750;
 
       // Next Steps
       page6.drawText("Next Steps", { 
