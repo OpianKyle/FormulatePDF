@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const logoWidth = 200;
         const logoHeight = 58;
         const logoX = 60;
-        const logoY = 600;
+        const logoY = 650;
         
         coverPage.drawImage(logoImage, {
           x: logoX,
