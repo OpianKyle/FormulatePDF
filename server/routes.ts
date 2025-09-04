@@ -194,7 +194,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const page1 = pdfDoc.addPage([595.28, 841.89]);
       addFooter(page1);
       addLogo(page1);
-      let yPos = 720;
+      let yPos = 680;
 
       // Title with dynamic values
       const pageTitle = `Turning R${proposal.investmentAmount.toLocaleString()} into R${targetValue.toLocaleString()} (${proposal.targetReturn}% Growth) in ${proposal.timeHorizon} Years`;
