@@ -135,8 +135,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const addLogo = (page: any) => {
         if (logoImage) {
-          const logoWidth = 100;
-          const logoHeight = 30;
+          const logoWidth = 150;
+          const logoHeight = 45;
           const x = pageWidth - logoWidth - rightMargin;
           const y = 800;
           
@@ -405,53 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       addLogo(page4);
       yPos = 750;
 
-      // Risk Mitigation Strategy
-      page4.drawText("Risk Mitigation Strategy", { 
-        x: leftMargin, 
-        y: yPos, 
-        size: 12, 
-        font: boldFont 
-      });
-      yPos -= 30;
 
-      const riskIntro = "To safeguard capital while pursuing high returns, we implement:";
-      yPos = drawJustifiedText(page4, riskIntro, leftMargin, yPos, contentWidth, font, 11);
-      yPos -= 25;
-
-      const riskStrategies = [
-        "• Diversification across 1-5 high-growth potential companies",
-        "• Due Diligence on management teams, financials, and market trends",
-        "• Structured Exit Plans (Share swops, IPO, recapitalization, buyouts)",
-        "• Co-Investment Model (Reduces exposure via partnerships)"
-      ];
-
-      riskStrategies.forEach(strategy => {
-        page4.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 20;
-      });
-
-      yPos -= 40;
-
-      // Why Invest With Us
-      page4.drawText("Why Invest With Us?", { 
-        x: leftMargin, 
-        y: yPos, 
-        size: 12, 
-        font: boldFont 
-      });
-      yPos -= 30;
-
-      const whyUsPoints = [
-        "• Industry Expertise: Deep knowledge of South African & African markets",
-        "• Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
-        "• Aligned Interests: We invest alongside clients",
-        "• Ownership: We take ownership and management stake in companies we invest in"
-      ];
-
-      whyUsPoints.forEach(point => {
-        page4.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 20;
-      });
 
       // === PAGE 5: PROJECTED RETURNS ===
       const page5 = pdfDoc.addPage([595.28, 841.89]);
@@ -520,6 +474,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       notes.forEach(note => {
         page5.drawText(note, { x: leftMargin, y: yPos, size: 11, font });
+        yPos -= 20;
+      });
+
+      yPos -= 40;
+
+      // Risk Mitigation Strategy (moved from page 4)
+      page5.drawText("Risk Mitigation Strategy", { 
+        x: leftMargin, 
+        y: yPos, 
+        size: 12, 
+        font: boldFont 
+      });
+      yPos -= 30;
+
+      const riskIntro = "To safeguard capital while pursuing high returns, we implement:";
+      yPos = drawJustifiedText(page5, riskIntro, leftMargin, yPos, contentWidth, font, 11);
+      yPos -= 25;
+
+      const riskStrategies = [
+        "• Diversification across 1-5 high-growth potential companies",
+        "• Due Diligence on management teams, financials, and market trends",
+        "• Structured Exit Plans (Share swops, IPO, recapitalization, buyouts)",
+        "• Co-Investment Model (Reduces exposure via partnerships)"
+      ];
+
+      riskStrategies.forEach(strategy => {
+        page5.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
+        yPos -= 20;
+      });
+
+      yPos -= 30;
+
+      // Why Invest With Us (moved from page 4)
+      page5.drawText("Why Invest With Us?", { 
+        x: leftMargin, 
+        y: yPos, 
+        size: 12, 
+        font: boldFont 
+      });
+      yPos -= 30;
+
+      const whyUsPoints = [
+        "• Industry Expertise: Deep knowledge of South African & African markets",
+        "• Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
+        "• Aligned Interests: We invest alongside clients",
+        "• Ownership: We take ownership and management stake in companies we invest in"
+      ];
+
+      whyUsPoints.forEach(point => {
+        page5.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
