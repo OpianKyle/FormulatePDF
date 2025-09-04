@@ -138,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const logoWidth = 170;
           const logoHeight = 50;
           const x = pageWidth - logoWidth - 25;
-          const y = 750;
+          const y = 760;
           
           page.drawImage(logoImage, {
             x,
@@ -162,7 +162,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // === COVER PAGE ===
       const coverPage = pdfDoc.addPage([595.28, 841.89]);
-      addLogo(coverPage);
       let yPos = 780;
 
       // Cover page header - top left
@@ -197,26 +196,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         y: yPos, 
         size: 16, 
         font: boldFont 
-      });
-
-      // Company registration details at bottom
-      const companyDetails = [
-        "Opian Capital (Pty) Ltd is Licensed as a Juristic Representative with FSP No: 50974",
-        "Company Registration Number: 2022/272376/07 FSP No: 50974",
-        "Company Address: 260 Uys Krige Drive, Loevenstein, Bellville, 7530, Western Cape",
-        "Tel: 0861 263 346 | Email: info@opianfsgroup.com | Website: www.opianfsgroup.com"
-      ];
-      
-      let bottomY = 120;
-      companyDetails.forEach((detail, index) => {
-        const textWidth = font.widthOfTextAtSize(detail, 9);
-        const textX = (pageWidth - textWidth) / 2;
-        coverPage.drawText(detail, {
-          x: textX,
-          y: bottomY - (index * 15),
-          size: 9,
-          font
-        });
       });
 
       // === PAGE 1: MAIN CONTENT ===
