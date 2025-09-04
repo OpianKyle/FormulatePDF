@@ -136,39 +136,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // === COVER PAGE ===
       const coverPage = pdfDoc.addPage([595.28, 841.89]);
-      let yPos = 750;
+      let yPos = 780;
 
-      // Cover page header
+      // Cover page header - top left
       coverPage.drawText("OFFER LETTER", { 
         x: leftMargin, 
         y: yPos, 
-        size: 16, 
+        size: 14, 
         font: boldFont 
       });
 
-      yPos -= 200; // Large spacing
+      yPos -= 300; // Large spacing to center content
 
       // Center the main title
       const mainTitle = "PRIVATE EQUITY PROPOSAL";
-      const titleWidth = boldFont.widthOfTextAtSize(mainTitle, 18);
+      const titleWidth = boldFont.widthOfTextAtSize(mainTitle, 24);
       const titleX = (pageWidth - titleWidth) / 2;
       coverPage.drawText(mainTitle, { 
         x: titleX, 
         y: yPos, 
-        size: 18, 
+        size: 24, 
         font: boldFont 
       });
 
-      yPos -= 100; // Large spacing
+      yPos -= 80;
 
-      // Subtitle
+      // Subtitle - centered
       const subtitle = "Private Equity Proposal – CAPITAL GROWTH";
-      const subtitleWidth = boldFont.widthOfTextAtSize(subtitle, 14);
+      const subtitleWidth = font.widthOfTextAtSize(subtitle, 16);
       const subtitleX = (pageWidth - subtitleWidth) / 2;
       coverPage.drawText(subtitle, { 
         x: subtitleX, 
         y: yPos, 
-        size: 14, 
+        size: 16, 
         font: boldFont 
       });
 
@@ -190,19 +190,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Client information
       page1.drawText("Prepared for:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
-      yPos -= 20;
+      yPos -= 25;
       page1.drawText(proposal.clientName, { x: leftMargin, y: yPos, size: 11, font });
-      yPos -= 30;
+      yPos -= 40;
 
       page1.drawText("Address:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
-      yPos -= 20;
+      yPos -= 25;
       const addressLines = proposal.clientAddress.split("\\n");
       addressLines.forEach(line => {
-        page1.drawText(line, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 17;
+        if (line.trim()) {
+          page1.drawText(line, { x: leftMargin, y: yPos, size: 11, font });
+          yPos -= 20;
+        }
       });
 
-      yPos -= 30;
+      yPos -= 40; // Extra spacing before date
       page1.drawText(`Date: ${proposal.proposalDate}`, { x: leftMargin, y: yPos, size: 11, font });
 
       yPos -= 40;
@@ -432,8 +434,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         yPos -= 17;
       });
 
-      // === PAGE 4: CONCLUSION & CLIENT CONFIRMATION ===
+      // === PAGE 4: RISK & WHY US ===
       const page4 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page4);
       yPos = 750;
 
       // Risk Mitigation Strategy
@@ -443,11 +446,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         size: 12, 
         font: boldFont 
       });
-      yPos -= 25;
+      yPos -= 30;
 
       const riskIntro = "To safeguard capital while pursuing high returns, we implement:";
       yPos = drawJustifiedText(page4, riskIntro, leftMargin, yPos, contentWidth, font, 11);
-      yPos -= 20;
+      yPos -= 25;
 
       const riskStrategies = [
         "• Diversification across 1-5 high-growth potential companies",
@@ -458,10 +461,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       riskStrategies.forEach(strategy => {
         page4.drawText(strategy, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 17;
+        yPos -= 20;
       });
 
-      yPos -= 30;
+      yPos -= 40;
 
       // Why Invest With Us
       page4.drawText("Why Invest With Us?", { 
@@ -470,7 +473,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         size: 12, 
         font: boldFont 
       });
-      yPos -= 25;
+      yPos -= 30;
 
       const whyUs = [
         "• Industry Expertise: Deep knowledge of South African & African markets",
@@ -481,10 +484,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       whyUs.forEach(point => {
         page4.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 17;
+        yPos -= 20;
       });
 
-      yPos -= 30;
+      yPos -= 40;
 
       // Next Steps
       page4.drawText("Next Steps", { 
@@ -493,103 +496,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
         size: 12, 
         font: boldFont 
       });
-      yPos -= 25;
+      yPos -= 30;
 
       const nextSteps = [
         "1. Decision Taking: Deciding on risk appetite & capital to be invested",
-        "2. FAIS Process: Making investment and completing documentation",
+        "2. FAIS Process: Making investment and completing documentation", 
         "3. Capital Deployment: We begin investment within 2-6 weeks post due diligence.",
         "4. Quarterly Reporting: Transparent updates on performance."
       ];
 
       nextSteps.forEach(step => {
         yPos = drawJustifiedText(page4, step, leftMargin, yPos, contentWidth, font, 11);
-        yPos -= 10;
+        yPos -= 15;
       });
 
-      yPos -= 30;
+      // === PAGE 5: CONCLUSION ===
+      const page5 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page5);
+      yPos = 750;
 
       // Conclusion
-      page4.drawText("Conclusion", { 
+      page5.drawText("Conclusion", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
         font: boldFont 
       });
-      yPos -= 25;
+      yPos -= 30;
 
       const conclusion = "This private equity strategy offers a compelling opportunity for superior growth on your investment by leveraging equity in high-growth, privately held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.";
-      yPos = drawJustifiedText(page4, conclusion, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page5, conclusion, leftMargin, yPos, contentWidth, font, 11);
 
-      yPos -= 20;
+      yPos -= 25;
 
       const thankYou = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
-      yPos = drawJustifiedText(page4, thankYou, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page5, thankYou, leftMargin, yPos, contentWidth, font, 11);
+
+      yPos -= 40;
+      page5.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+
+      yPos -= 120;
+
+      // Disclaimer - separated with proper spacing
+      const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
+      yPos = drawJustifiedText(page5, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
 
       yPos -= 30;
-      page4.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+
+      const proposalText = "*This proposal, when signed and accepted, will become part of the Agreement with the client";
+      yPos = drawJustifiedText(page5, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
+
+      // === PAGE 6: CLIENT CONFIRMATION ===
+      const page6 = pdfDoc.addPage([595.28, 841.89]);
+      yPos = 750;
+
+      // CLIENT CONFIRMATION
+      page6.drawText("CLIENT CONFIRMATION", { 
+        x: leftMargin, 
+        y: yPos, 
+        size: 14, 
+        font: boldFont 
+      });
+      yPos -= 40;
+
+      const confirmationText = "I, The undersigned, hereby accept the proposal as outlined in the documentation contained herein. I confirmed that I had made an informed decision based on my own financial product experience and/or external consultation with professionals. I confirm that I have the financial capacity to enter into this agreement and also the additional financial resources which allow me the opportunity to enter the waiting periods/ lock up periods/ and or risk associated with this product";
+      yPos = drawJustifiedText(page6, confirmationText, leftMargin, yPos, contentWidth, font, 11, 17);
 
       yPos -= 60;
 
-      // Disclaimer
-      const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
-      yPos = drawJustifiedText(page4, disclaimerText, leftMargin, yPos, contentWidth, font, 9);
-
-      yPos -= 20;
-
-      const proposalText = "*This proposal, when signed and accepted, will become part of the Agreement with the client";
-      yPos = drawJustifiedText(page4, proposalText, leftMargin, yPos, contentWidth, font, 9);
-
-      yPos -= 30;
-
-      // CLIENT CONFIRMATION
-      page4.drawText("CLIENT CONFIRMATION", { 
+      // Signature fields with proper spacing
+      page6.drawText(`Signed at _________________ on _______ 202_`, { 
         x: leftMargin, 
         y: yPos, 
-        size: 12, 
-        font: boldFont 
+        size: 11, 
+        font 
       });
-      yPos -= 25;
+      yPos -= 50;
 
-      const confirmationText = "I, The undersigned, hereby accept the proposal as outlined in the documentation contained herein. I confirmed that I had made an informed decision based on my own financial product experience and/or external consultation with professionals. I confirm that I have the financial capacity to enter into this agreement and also the additional financial resources which allow me the opportunity to enter the waiting periods/ lock up periods/ and or risk associated with this product";
-      yPos = drawJustifiedText(page4, confirmationText, leftMargin, yPos, contentWidth, font, 10);
-
+      page6.drawText("Signature of Client: _________________________", { 
+        x: leftMargin, 
+        y: yPos, 
+        size: 11, 
+        font 
+      });
       yPos -= 40;
 
-      // Signature fields
-      page4.drawText(`Signed at _________________ on _______ 202_`, { 
+      page6.drawText("Name of Client: _____________________________", { 
         x: leftMargin, 
         y: yPos, 
-        size: 10, 
+        size: 11, 
         font 
       });
-      yPos -= 30;
+      yPos -= 40;
 
-      page4.drawText("Signature of Client: _________________________", { 
+      page6.drawText("Date Signed: ________________________________", { 
         x: leftMargin, 
         y: yPos, 
-        size: 10, 
-        font 
-      });
-      yPos -= 20;
-
-      page4.drawText("Name of Client: _____________________________", { 
-        x: leftMargin, 
-        y: yPos, 
-        size: 10, 
-        font 
-      });
-      yPos -= 20;
-
-      page4.drawText("Date Signed: ________________________________", { 
-        x: leftMargin, 
-        y: yPos, 
-        size: 10, 
+        size: 11, 
         font 
       });
 
-      // Add footer to last page
-      addFooter(page4);
+      // Add footer to client confirmation page
+      addFooter(page6);
 
       // === Save & Send ===
       const pdfBytes = await pdfDoc.save();
