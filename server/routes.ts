@@ -51,6 +51,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pageWidth = 595.28;
       const contentWidth = pageWidth - leftMargin - rightMargin;
 
+      // Load logo image
+      let logoImage: any = null;
+      try {
+        const logoPath = path.join(__dirname, "../attached_assets/image_1756974781134.png");
+        const logoBytes = await fs.readFile(logoPath);
+        logoImage = await pdfDoc.embedPng(logoBytes);
+      } catch (error) {
+        console.warn("Could not load logo image:", error);
+      }
+
       // === Helper Functions ===
       const drawJustifiedText = (
         page: any,
@@ -123,6 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       };
 
+      const addLogo = (page: any) => {
+        if (logoImage) {
+          const logoWidth = 100;
+          const logoHeight = 30;
+          const x = pageWidth - logoWidth - rightMargin;
+          const y = 800;
+          
+          page.drawImage(logoImage, {
+            x,
+            y,
+            width: logoWidth,
+            height: logoHeight
+          });
+        }
+      };
+
       // === Calculations ===
       const targetValue = proposal.investmentAmount * (1 + proposal.targetReturn / 100);
       const sharesIssued = proposal.investmentAmount / 8;
@@ -175,6 +201,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // === PAGE 1: MAIN CONTENT ===
       const page1 = pdfDoc.addPage([595.28, 841.89]);
       addFooter(page1);
+      addLogo(page1);
       yPos = 750;
 
       // Title with dynamic values
@@ -248,6 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // === PAGE 2: INVESTMENT OPPORTUNITY ===
       const page2 = pdfDoc.addPage([595.28, 841.89]);
       addFooter(page2);
+      addLogo(page2);
       yPos = 750;
 
       // Investment Opportunity & Market Outlook
@@ -350,93 +378,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos = tableStartY - (tableData.length * rowHeight) - 30;
 
-      // Why Private Equity section
-      page2.drawText("Why Private Equity?", { x: leftMargin, y: yPos, size: 12, font: boldFont });
-      yPos -= 20;
+      // === PAGE 3: WHY PRIVATE EQUITY ===
+      const page3 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page3);
+      addLogo(page3);
+      yPos = 750;
 
-      const whyPE = [
+      // Why Private Equity section
+      page3.drawText("Why Private Equity?", { x: leftMargin, y: yPos, size: 12, font: boldFont });
+      yPos -= 25;
+
+      const whyPEReasons = [
         "• Higher Returns: PE typically outperforms stocks & bonds.",
         "• Active Value Creation: Hands-on management improves business performance.",
         "• Lower Volatility: Unlike public markets, PE is less exposed to short-term fluctuations."
       ];
 
-      whyPE.forEach(reason => {
-        page2.drawText(reason, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 17;
+      whyPEReasons.forEach(reason => {
+        page3.drawText(reason, { x: leftMargin, y: yPos, size: 11, font });
+        yPos -= 20;
       });
 
-      // === PAGE 3: PROJECTED RETURNS ===
-      const page3 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page3);
-      yPos = 750;
-
-      // Projected Returns & Cash Flow
-      page3.drawText("Projected Returns & Cash Flow", { 
-        x: leftMargin, 
-        y: yPos, 
-        size: 12, 
-        font: boldFont 
-      });
-      yPos -= 30;
-
-      // Cash Flow Table
-      const cashFlowData = [
-        ["Year", "Shares Issued", "Div Allocation", "Div Return", "Growth (%)", "Investment Value"],
-        ["Year 0", "-", "-", "-", "-", `R${proposal.investmentAmount.toLocaleString()}, 00`],
-        ["Year 1", Math.floor(sharesIssued).toLocaleString(), proposal.year1Dividend.toFixed(3), `R${year1Return.toLocaleString()}, 00`, `${((year1Return / proposal.investmentAmount) * 100).toFixed(2)}%`, `R${year1Value.toLocaleString()}, 00`],
-        ["Year 2", Math.floor(sharesIssued).toLocaleString(), proposal.year2Dividend.toFixed(3), `R${year2Return.toLocaleString()}, 00`, `${((year2Return / year1Value) * 100).toFixed(2)}%`, `R${year2Value.toLocaleString()}, 00`],
-        ["Year 3", Math.floor(sharesIssued).toLocaleString(), proposal.year3Dividend.toFixed(3), `R${year3Return.toLocaleString()}, 00`, `${((year3Return / year2Value) * 100).toFixed(2)}%`, `R${year3Value.toLocaleString()}, 00`]
-      ];
-
-      const colWidths = [60, 85, 85, 85, 70, 100];
-      let tableTop = yPos;
-
-      // Draw cash flow table
-      cashFlowData.forEach((row, rowIndex) => {
-        const currentY = tableTop - (rowIndex * 25);
-        const isHeader = rowIndex === 0;
-        
-        let xPos = leftMargin;
-        row.forEach((cell, colIndex) => {
-          // Draw cell border
-          page3.drawRectangle({
-            x: xPos,
-            y: currentY - 25,
-            width: colWidths[colIndex],
-            height: 25,
-            borderColor: rgb(0, 0, 0),
-            borderWidth: 1
-          });
-          
-          // Draw text
-          page3.drawText(cell, {
-            x: xPos + 4,
-            y: currentY - 15,
-            size: 9,
-            font: isHeader ? boldFont : font
-          });
-          
-          xPos += colWidths[colIndex];
-        });
-      });
-
-      yPos = tableTop - (cashFlowData.length * 25) - 25;
-
-      // Notes
-      const notes = [
-        "• Note: While returns are based on historical PE performance; actual results may vary.",
-        "• Fund Value is non liquid",
-        "• The investment is locked into the period with no access to investment"
-      ];
-
-      notes.forEach(note => {
-        page3.drawText(note, { x: leftMargin, y: yPos, size: 11, font });
-        yPos -= 17;
-      });
-
-      // === PAGE 4: RISK & WHY US ===
+      // === PAGE 4: RISK & WHY US (MOVED UP) ===
       const page4 = pdfDoc.addPage([595.28, 841.89]);
       addFooter(page4);
+      addLogo(page4);
       yPos = 750;
 
       // Risk Mitigation Strategy
@@ -475,22 +441,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       yPos -= 30;
 
-      const whyUs = [
+      const whyUsPoints = [
         "• Industry Expertise: Deep knowledge of South African & African markets",
         "• Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
         "• Aligned Interests: We invest alongside clients",
         "• Ownership: We take ownership and management stake in companies we invest in"
       ];
 
-      whyUs.forEach(point => {
+      whyUsPoints.forEach(point => {
         page4.drawText(point, { x: leftMargin, y: yPos, size: 11, font });
+        yPos -= 20;
+      });
+
+      // === PAGE 5: PROJECTED RETURNS ===
+      const page5 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page5);
+      addLogo(page5);
+      yPos = 750;
+
+      // Projected Returns & Cash Flow
+      page5.drawText("Projected Returns & Cash Flow", { 
+        x: leftMargin, 
+        y: yPos, 
+        size: 12, 
+        font: boldFont 
+      });
+      yPos -= 30;
+
+      // Cash Flow Table
+      const cashFlowData = [
+        ["Year", "Shares Issued", "Div Allocation", "Div Return", "Growth (%)", "Investment Value"],
+        ["Year 0", "-", "-", "-", "-", `R${proposal.investmentAmount.toLocaleString()}, 00`],
+        ["Year 1", Math.floor(sharesIssued).toLocaleString(), proposal.year1Dividend.toFixed(3), `R${year1Return.toLocaleString()}, 00`, `${((year1Return / proposal.investmentAmount) * 100).toFixed(2)}%`, `R${year1Value.toLocaleString()}, 00`],
+        ["Year 2", Math.floor(sharesIssued).toLocaleString(), proposal.year2Dividend.toFixed(3), `R${year2Return.toLocaleString()}, 00`, `${((year2Return / year1Value) * 100).toFixed(2)}%`, `R${year2Value.toLocaleString()}, 00`],
+        ["Year 3", Math.floor(sharesIssued).toLocaleString(), proposal.year3Dividend.toFixed(3), `R${year3Return.toLocaleString()}, 00`, `${((year3Return / year2Value) * 100).toFixed(2)}%`, `R${year3Value.toLocaleString()}, 00`]
+      ];
+
+      const colWidths = [60, 85, 85, 85, 70, 100];
+      let tableTop = yPos;
+
+      // Draw cash flow table
+      cashFlowData.forEach((row, rowIndex) => {
+        const currentY = tableTop - (rowIndex * 25);
+        const isHeader = rowIndex === 0;
+        
+        let xPos = leftMargin;
+        row.forEach((cell, colIndex) => {
+          // Draw cell border
+          page5.drawRectangle({
+            x: xPos,
+            y: currentY - 25,
+            width: colWidths[colIndex],
+            height: 25,
+            borderColor: rgb(0, 0, 0),
+            borderWidth: 1
+          });
+          
+          // Draw text
+          page5.drawText(cell, {
+            x: xPos + 4,
+            y: currentY - 15,
+            size: 9,
+            font: isHeader ? boldFont : font
+          });
+          
+          xPos += colWidths[colIndex];
+        });
+      });
+
+      yPos = tableTop - (cashFlowData.length * 25) - 25;
+
+      // Notes
+      const notes = [
+        "• Note: While returns are based on historical PE performance; actual results may vary.",
+        "• Fund Value is non liquid",
+        "• The investment is locked into the period with no access to investment"
+      ];
+
+      notes.forEach(note => {
+        page5.drawText(note, { x: leftMargin, y: yPos, size: 11, font });
         yPos -= 20;
       });
 
       yPos -= 40;
 
       // Next Steps
-      page4.drawText("Next Steps", { 
+      page5.drawText("Next Steps", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -506,17 +542,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       nextSteps.forEach(step => {
-        yPos = drawJustifiedText(page4, step, leftMargin, yPos, contentWidth, font, 11);
+        yPos = drawJustifiedText(page5, step, leftMargin, yPos, contentWidth, font, 11);
         yPos -= 15;
       });
 
-      // === PAGE 5: CONCLUSION ===
-      const page5 = pdfDoc.addPage([595.28, 841.89]);
-      addFooter(page5);
+      // === PAGE 6: CONCLUSION & CLIENT CONFIRMATION ===
+      const page6 = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page6);
+      addLogo(page6);
       yPos = 750;
 
       // Conclusion
-      page5.drawText("Conclusion", { 
+      page6.drawText("Conclusion", { 
         x: leftMargin, 
         y: yPos, 
         size: 12, 
@@ -525,79 +562,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 30;
 
       const conclusion = "This private equity strategy offers a compelling opportunity for superior growth on your investment by leveraging equity in high-growth, privately held businesses. With disciplined risk management and sector expertise, we are confident in delivering superior returns.";
-      yPos = drawJustifiedText(page5, conclusion, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page6, conclusion, leftMargin, yPos, contentWidth, font, 11);
 
       yPos -= 25;
 
       const thankYou = "Thank you for your consideration. Please reach out to me if there are further concerns or let's discuss how we can tailor this strategy to your goals.";
-      yPos = drawJustifiedText(page5, thankYou, leftMargin, yPos, contentWidth, font, 11);
+      yPos = drawJustifiedText(page6, thankYou, leftMargin, yPos, contentWidth, font, 11);
 
       yPos -= 40;
-      page5.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      page6.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
 
-      yPos -= 120;
+      yPos -= 80;
 
       // Disclaimer - separated with proper spacing
       const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
-      yPos = drawJustifiedText(page5, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
+      yPos = drawJustifiedText(page6, disclaimerText, leftMargin, yPos, contentWidth, font, 9, 15);
 
-      yPos -= 30;
+      yPos -= 25;
 
       const proposalText = "*This proposal, when signed and accepted, will become part of the Agreement with the client";
-      yPos = drawJustifiedText(page5, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
+      yPos = drawJustifiedText(page6, proposalText, leftMargin, yPos, contentWidth, font, 9, 15);
 
-      // === PAGE 6: CLIENT CONFIRMATION ===
-      const page6 = pdfDoc.addPage([595.28, 841.89]);
-      yPos = 750;
+      yPos -= 40;
 
       // CLIENT CONFIRMATION
       page6.drawText("CLIENT CONFIRMATION", { 
         x: leftMargin, 
         y: yPos, 
-        size: 14, 
+        size: 12, 
         font: boldFont 
       });
-      yPos -= 40;
+      yPos -= 30;
 
       const confirmationText = "I, The undersigned, hereby accept the proposal as outlined in the documentation contained herein. I confirmed that I had made an informed decision based on my own financial product experience and/or external consultation with professionals. I confirm that I have the financial capacity to enter into this agreement and also the additional financial resources which allow me the opportunity to enter the waiting periods/ lock up periods/ and or risk associated with this product";
-      yPos = drawJustifiedText(page6, confirmationText, leftMargin, yPos, contentWidth, font, 11, 17);
+      yPos = drawJustifiedText(page6, confirmationText, leftMargin, yPos, contentWidth, font, 10, 16);
 
-      yPos -= 60;
+      yPos -= 50;
 
       // Signature fields with proper spacing
       page6.drawText(`Signed at _________________ on _______ 202_`, { 
         x: leftMargin, 
         y: yPos, 
-        size: 11, 
+        size: 10, 
         font 
       });
-      yPos -= 50;
+      yPos -= 40;
 
       page6.drawText("Signature of Client: _________________________", { 
         x: leftMargin, 
         y: yPos, 
-        size: 11, 
+        size: 10, 
         font 
       });
-      yPos -= 40;
+      yPos -= 30;
 
       page6.drawText("Name of Client: _____________________________", { 
         x: leftMargin, 
         y: yPos, 
-        size: 11, 
+        size: 10, 
         font 
       });
-      yPos -= 40;
+      yPos -= 30;
 
       page6.drawText("Date Signed: ________________________________", { 
         x: leftMargin, 
         y: yPos, 
-        size: 11, 
+        size: 10, 
         font 
       });
-
-      // Add footer to client confirmation page
-      addFooter(page6);
 
       // === Save & Send ===
       const pdfBytes = await pdfDoc.save();
