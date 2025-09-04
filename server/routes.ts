@@ -173,21 +173,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // === COVER PAGE ===
       const coverPage = pdfDoc.addPage([595.28, 841.89]);
       
-      // Add background image on the right side
-      if (coverBackgroundImage) {
-        // Position background image to cover right portion of the page
-        const bgWidth = 300; // Half page width
-        const bgHeight = 841.89; // Full page height
-        const bgX = pageWidth - bgWidth; // Right side
-        const bgY = 0; // Bottom aligned
-        
-        coverPage.drawImage(coverBackgroundImage, {
-          x: bgX,
-          y: bgY,
-          width: bgWidth,
-          height: bgHeight
-        });
-      }
       
       // Add logo on the left side - larger for cover
       if (logoImage) {
