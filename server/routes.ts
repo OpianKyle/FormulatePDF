@@ -353,9 +353,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 20;
 
       const whyPE = [
-        "⬛ Higher Returns: PE typically outperforms stocks & bonds.",
-        "⬛ Active Value Creation: Hands-on management improves business performance.",
-        "⬛ Lower Volatility: Unlike public markets, PE is less exposed to short-term fluctuations."
+        "• Higher Returns: PE typically outperforms stocks & bonds.",
+        "• Active Value Creation: Hands-on management improves business performance.",
+        "• Lower Volatility: Unlike public markets, PE is less exposed to short-term fluctuations."
       ];
 
       whyPE.forEach(reason => {
@@ -450,10 +450,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 20;
 
       const riskStrategies = [
-        "⬛ Diversification across 1-5 high-growth potential companies",
-        "⬛ Due Diligence on management teams, financials, and market trends",
-        "⬛ Structured Exit Plans (Share swops, IPO, recapitalization, buyouts)",
-        "⬛ Co-Investment Model (Reduces exposure via partnerships)"
+        "• Diversification across 1-5 high-growth potential companies",
+        "• Due Diligence on management teams, financials, and market trends",
+        "• Structured Exit Plans (Share swops, IPO, recapitalization, buyouts)",
+        "• Co-Investment Model (Reduces exposure via partnerships)"
       ];
 
       riskStrategies.forEach(strategy => {
@@ -473,10 +473,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 25;
 
       const whyUs = [
-        "✓ Industry Expertise: Deep knowledge of South African & African markets",
-        "✓ Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
-        "✓ Aligned Interests: We invest alongside clients",
-        "✓ Ownership: We take ownership and management stake in companies we invest in"
+        "• Industry Expertise: Deep knowledge of South African & African markets",
+        "• Transparent Fees: Performance-based compensation (2% management fee + 20% carry)",
+        "• Aligned Interests: We invest alongside clients",
+        "• Ownership: We take ownership and management stake in companies we invest in"
       ];
 
       whyUs.forEach(point => {
