@@ -61,15 +61,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.warn("Could not load logo image:", error);
       }
 
-      // Load cover page background image
-      let coverBackgroundImage: any = null;
-      try {
-        const backgroundPath = path.join(__dirname, "../attached_assets/image_1756985415884.png");
-        const backgroundBytes = await fs.readFile(backgroundPath);
-        coverBackgroundImage = await pdfDoc.embedPng(backgroundBytes);
-      } catch (error) {
-        console.warn("Could not load cover background image:", error);
-      }
 
       // === Helper Functions ===
       const drawJustifiedText = (
