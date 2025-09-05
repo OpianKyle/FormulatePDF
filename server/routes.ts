@@ -438,9 +438,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cashFlowData = [
         ["Year", "Shares Issued", "Div Allocation", "Div Return", "Growth (%)", "Investment Value"],
         ["Year 0", "-", "-", "-", "-", `R${proposal.investmentAmount.toLocaleString()}, 00`],
-        ["Year 1", Math.floor(sharesIssued).toLocaleString(), proposal.year1Dividend.toFixed(3), `R${year1Return.toLocaleString()}, 00`, `${((year1Return / proposal.investmentAmount) * 100).toFixed(2)}%`, `R${year1Value.toLocaleString()}, 00`],
-        ["Year 2", Math.floor(sharesIssued).toLocaleString(), proposal.year2Dividend.toFixed(3), `R${year2Return.toLocaleString()}, 00`, `${((year2Return / year1Value) * 100).toFixed(2)}%`, `R${year2Value.toLocaleString()}, 00`],
-        ["Year 3", Math.floor(sharesIssued).toLocaleString(), proposal.year3Dividend.toFixed(3), `R${year3Return.toLocaleString()}, 00`, `${((year3Return / year2Value) * 100).toFixed(2)}%`, `R${year3Value.toLocaleString()}, 00`]
+        ["Year 1", Math.floor(sharesIssued).toLocaleString(), proposal.year1Dividend.toFixed(3), `R${year1Return.toLocaleString()}`, `${((year1Return / proposal.investmentAmount) * 100).toFixed(2)}%`, `R${year1Value.toLocaleString()}`],
+        ["Year 2", Math.floor(sharesIssued).toLocaleString(), proposal.year2Dividend.toFixed(3), `R${year2Return.toLocaleString()}`, `${((year2Return / year1Value) * 100).toFixed(2)}%`, `R${year2Value.toLocaleString()}`],
+        ["Year 3", Math.floor(sharesIssued).toLocaleString(), proposal.year3Dividend.toFixed(3), `R${year3Return.toLocaleString()}`, `${((year3Return / year2Value) * 100).toFixed(2)}%`, `R${year3Value.toLocaleString()}`]
       ];
 
       const colWidths = [60, 85, 85, 85, 70, 100];
