@@ -270,8 +270,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       yPos -= 15;
 
+      // === PAGE 1B: KEY HIGHLIGHTS (to avoid footer overlap) ===
+      const page1b = pdfDoc.addPage([595.28, 841.89]);
+      addFooter(page1b);
+      addLogo(page1b);
+      yPos = 720;
+
       // Key Highlights
-      page1.drawText("Key Highlights:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
+      page1b.drawText("Key Highlights:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
       yPos -= 20;
 
       const highlights = [
@@ -282,7 +288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       highlights.forEach(highlight => {
-        yPos = drawJustifiedText(page1, highlight, leftMargin, yPos, contentWidth, font, 11);
+        yPos = drawJustifiedText(page1b, highlight, leftMargin, yPos, contentWidth, font, 11);
         yPos -= 10;
       });
 
