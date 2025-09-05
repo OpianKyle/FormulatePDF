@@ -124,8 +124,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ];
         
         footerText.forEach((line, i) => {
+          const textWidth = font.widthOfTextAtSize(line, 8);
+          const centerX = pageWidth / 2 - textWidth / 2;
           page.drawText(line, { 
-            x: leftMargin, 
+            x: centerX, 
             y: footerY + (footerText.length - 1 - i) * 10, 
             size: 8, 
             font, 
@@ -223,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      yPos -= 40; // Extra spacing before date
+      yPos -= 60; // Extra spacing before date
       page1.drawText(`Date: ${proposal.proposalDate}`, { x: leftMargin, y: yPos, size: 11, font });
 
       yPos -= 40;
