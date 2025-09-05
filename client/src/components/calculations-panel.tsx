@@ -26,7 +26,7 @@ export default function CalculationsPanel({ formData, lastGenerated }: Calculati
             <div className="flex justify-between items-center">
               <span className="font-medium">Target Investment Value</span>
               <span className="text-xl font-bold" data-testid="text-target-value">
-                R {calculations.targetValue.toLocaleString()}
+                R {Math.round(calculations.targetValue).toLocaleString()}
               </span>
             </div>
           </div>
@@ -35,7 +35,7 @@ export default function CalculationsPanel({ formData, lastGenerated }: Calculati
             <div className="bg-muted p-4 rounded-lg">
               <div className="text-sm text-muted-foreground">Total Profit</div>
               <div className="text-lg font-semibold text-accent" data-testid="text-total-profit">
-                R {calculations.totalProfit.toLocaleString()}
+                R {Math.round(calculations.totalProfit).toLocaleString()}
               </div>
             </div>
             <div className="bg-muted p-4 rounded-lg">
@@ -95,13 +95,13 @@ export default function CalculationsPanel({ formData, lastGenerated }: Calculati
                     {(formData.year1Dividend || 0).toFixed(3)}
                   </td>
                   <td className="text-right py-3 px-2 text-accent font-medium" data-testid="text-year1-return">
-                    R {calculations.year1Return.toLocaleString()}
+                    R {Math.round(calculations.year1Return).toLocaleString()}
                   </td>
                   <td className="text-right py-3 px-2 text-accent" data-testid="text-year1-growth">
                     {calculations.year1Growth.toFixed(2)}%
                   </td>
                   <td className="text-right py-3 px-2 font-semibold" data-testid="text-year1-value">
-                    R {calculations.year1Value.toLocaleString()}
+                    R {Math.round(calculations.year1Value).toLocaleString()}
                   </td>
                 </tr>
                 <tr className="border-b border-border hover:bg-muted transition-colors">
@@ -113,13 +113,13 @@ export default function CalculationsPanel({ formData, lastGenerated }: Calculati
                     {(formData.year2Dividend || 0).toFixed(3)}
                   </td>
                   <td className="text-right py-3 px-2 text-accent font-medium" data-testid="text-year2-return">
-                    R {calculations.year2Return.toLocaleString()}
+                    R {Math.round(calculations.year2Return).toLocaleString()}
                   </td>
                   <td className="text-right py-3 px-2 text-accent" data-testid="text-year2-growth">
                     {calculations.year2Growth.toFixed(2)}%
                   </td>
                   <td className="text-right py-3 px-2 font-semibold" data-testid="text-year2-value">
-                    R {calculations.year2Value.toLocaleString()}
+                    R {Math.round(calculations.year2Value).toLocaleString()}
                   </td>
                 </tr>
                 <tr className="hover:bg-muted transition-colors">
@@ -131,13 +131,13 @@ export default function CalculationsPanel({ formData, lastGenerated }: Calculati
                     {(formData.year3Dividend || 0).toFixed(3)}
                   </td>
                   <td className="text-right py-3 px-2 text-accent font-medium" data-testid="text-year3-return">
-                    R {calculations.year3Return.toLocaleString()}
+                    R {Math.round(calculations.year3Return).toLocaleString()}
                   </td>
                   <td className="text-right py-3 px-2 text-accent" data-testid="text-year3-growth">
                     {calculations.year3Growth.toFixed(2)}%
                   </td>
                   <td className="text-right py-3 px-2 font-semibold" data-testid="text-year3-value">
-                    R {calculations.year3Value.toLocaleString()}
+                    R {Math.round(calculations.year3Value).toLocaleString()}
                   </td>
                 </tr>
               </tbody>
