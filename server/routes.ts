@@ -226,7 +226,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       });
 
-      yPos -= 60; // Extra spacing before date
+      yPos -= 40; // Extra spacing before date
       page1.drawText(`Date: ${proposal.proposalDate}`, { x: leftMargin, y: yPos, size: 11, font });
 
       yPos -= 40;
@@ -588,7 +588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       yPos -= 40;
       page5.drawText("Kind Regards", { x: leftMargin, y: yPos, size: 11, font: boldFont });
 
-      yPos -= 60;
+      yPos -= 40;
 
       // Disclaimer - separated with proper spacing
       const disclaimerText = "*Disclaimer: This proposal is for illustrative purposes only. Past performance is not indicative of future results. Private equity involves risk, including potential loss of capital. Investors should conduct independent due diligence before committing funds.";
@@ -617,7 +617,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const confirmationText = "I, The undersigned, hereby accept the proposal as outlined in the documentation contained herein. I confirmed that I had made an informed decision based on my own financial product experience and/or external consultation with professionals. I confirm that I have the financial capacity to enter into this agreement and also the additional financial resources which allow me the opportunity to enter the waiting periods/ lock up periods/ and or risk associated with this product";
       yPos = drawJustifiedText(page6, confirmationText, leftMargin, yPos, contentWidth, font, 10, 16);
 
-      yPos -= 50;
+      yPos -= 40;
 
       // Signature fields with proper spacing
       page6.drawText(`Signed at _________________ on _______ 202_`, { 
