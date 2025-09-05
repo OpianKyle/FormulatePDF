@@ -154,6 +154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // === Calculations ===
       const targetValue = proposal.investmentAmount * (1 + proposal.targetReturn / 100);
+      const totalProfit = targetValue - proposal.investmentAmount;
       const sharesIssued = proposal.investmentAmount / 8;
       const year1Return = sharesIssued * proposal.year1Dividend;
       const year2Return = sharesIssued * proposal.year2Dividend;
@@ -248,7 +249,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const executiveSummary = `This proposal outlines a strategic private equity (PE) investment strategy designed to grow an initial capital of R${proposal.investmentAmount.toLocaleString()} by ${proposal.targetReturn}% (R${targetValue.toLocaleString()} total) over a ${proposal.timeHorizon}-year horizon. By leveraging high-growth private equity opportunities in carefully selected industries, we aim to maximize returns while mitigating risks through diversification and expert fund management.`;
       yPos = drawJustifiedText(page1, executiveSummary, leftMargin, yPos, contentWidth, font, 11);
 
+      yPos -= 35;
+
+      // Investment Summary Section
+      page1.drawText("Investment Summary", { x: leftMargin, y: yPos, size: 12, font: boldFont });
       yPos -= 25;
+
+      const summaryData = [
+        ["Target Investment Value:", `R${targetValue.toLocaleString()}`],
+        ["Total Profit:", `R${totalProfit.toLocaleString()}`],
+        ["Target Return:", `${proposal.targetReturn}%`],
+        ["Annualized Return:", `${(annualizedReturn * 100).toFixed(1)}%`]
+      ];
+
+      summaryData.forEach(([label, value]) => {
+        page1.drawText(label, { x: leftMargin, y: yPos, size: 11, font: boldFont });
+        page1.drawText(value, { x: leftMargin + 200, y: yPos, size: 11, font });
+        yPos -= 20;
+      });
+
+      yPos -= 15;
 
       // Key Highlights
       page1.drawText("Key Highlights:", { x: leftMargin, y: yPos, size: 11, font: boldFont });
